@@ -6,17 +6,16 @@ from PyQt5 import QtWidgets
 from src.ui.response_window import Ui_ResponseDialog
 
 import ast
+import numpy as np
 import scipy.signal as signal
 
 class ResponseDialog(QtWidgets.QDialog, Ui_ResponseDialog):
     def __init__(self, parent=None):
         super().__init__()
         self.setupUi(self)
-
+        self.input_txt.setEnabled(True)
         self.input_txt.textChanged.connect(self.enableResponseFunction)
         self.check_btn.clicked.connect(self.processResponseValues)
-
-
     
     def setResponseHelp(self):
         try:
@@ -29,7 +28,7 @@ class ResponseDialog(QtWidgets.QDialog, Ui_ResponseDialog):
             pass
 
     def getResponseTitle(self):
-        return self.input_txt.text()
+        return self.resp_name_txt.text()
 
     def getResponseExpression(self):
         return self.input_txt.text()

@@ -4,12 +4,12 @@ import matplotlib
 matplotlib.use('Agg')
 
 from matplotlib.figure import Figure
-from matplotlib.widgets import Cursor
+# from matplotlib.widgets import Cursor
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as Canvas
 from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 
 # Ensure using PyQt5 backend
-matplotlib.use('pgf')
+# matplotlib.use('pgf')
 matplotlib.rcParams.update({
     "pgf.texsystem": "pdflatex",
     'font.family': 'serif',
@@ -17,7 +17,8 @@ matplotlib.rcParams.update({
     'pgf.rcfonts': False,
     'legend.fancybox': False,
     'legend.edgecolor': 'black',
-    'savefig.format': 'pdf'
+    'savefig.format': 'pdf',
+    'path.simplify_threshold': 0.2
 })
 
 class CustomNavigationToolbar(NavigationToolbar):

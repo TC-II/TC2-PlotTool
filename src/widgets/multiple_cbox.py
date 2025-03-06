@@ -7,6 +7,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
         super(CheckableComboBox, self).__init__()
         self.view().pressed.connect(self.handleItemPressed)
         self.setModel(QtGui.QStandardItemModel(self))
+        self._changed = False
 
     def handleItemPressed(self, index):
         item = self.model().itemFromIndex(index)
@@ -14,7 +15,13 @@ class CheckableComboBox(QtWidgets.QComboBox):
             item.setCheckState(QtCore.Qt.Unchecked)
         else:
             item.setCheckState(QtCore.Qt.Checked)
+        self._changed = True
         
+    def hidePopup(self):
+        if not self._changed:
+            super(CheckableComboBox, self).hidePopup()
+        self._changed = False
+
     def item_checked(self, index):
         item = self.model().item(index, 0)
         return item.checkState() == QtCore.Qt.Checked
@@ -28,6 +35,7 @@ class CheckableComboBox(QtWidgets.QComboBox):
 
     def currentIndexes(self):
         return self.get_checked_items()
+    
     def setCurrentIndexes(self, indexes):
         for i in range(self.count()):
             item = self.model().item(i, 0)

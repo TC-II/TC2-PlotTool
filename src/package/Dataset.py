@@ -8,7 +8,7 @@ from src.package.Filter import AnalogFilter
 from collections import defaultdict
 from PyQt5.QtCore import QFileInfo
 from src.package.Dataline import Dataline
-
+import scipy.signal as signal
 class Dataset:
     def __init__(self, filepath='', title='', origin=''):
         qfi = QFileInfo(filepath)
@@ -74,21 +74,52 @@ class Dataset:
                 self.data[i][varname] = vardata
 
     def parse_from_txt(self, filepath):
+        has_cases = False
+        self.data = [{}]
         with open(filepath, mode='r') as file:
-            fields = file.readline().replace('\n', '').split('\t')
-            case = -1
             for line in file.readlines():
                 if('Step Information:' in line):
-                    self.data.append(defaultdict(list))
-                    self.casenames.append(line[18:line.index('  (Run: ')])
-                    case += 1
-                else:
+                    has_cases = True
+                    break
+
+        with open(filepath, mode='r') as file:
+            fields = file.readline().replace('\n', '').split('\t')
+            for field in fields:
+                self.data[0][field] = []
+            case = -1
+            if(has_cases):
+                for line in file.readlines():
+                    if('Step Information:' in line):
+                        self.data.append(defaultdict(list))
+                        if('Run:' in line):
+                            self.casenames.append(line[18:line.index('  (Run: ')])
+                        elif('Step:' in line):
+                            self.casenames.append(line[18:line.index('  (Step: ')])
+                        case += 1
+                    else:
+                        linedata = line.replace('\n', '').split('\t')
+                        for x in range(len(fields)):
+                            if('i' in linedata[x]):
+                                self.data[case][fields[x]].append(np.complex128(linedata[x]))
+                            else:
+                                self.data[case][fields[x]].append(float(linedata[x]))
+            else:
+                for line in file.readlines():
                     linedata = line.replace('\n', '').split('\t')
                     for x in range(len(fields)):
-                        if('i' in linedata[x]):
-                            self.data[case][fields[x]].append(np.complex128(linedata[x]))
+                        if('dB' in linedata[x]):
+                            newlindata = linedata[x][1:-2].split('dB,')
+                            self.data[0][fields[x]].append(float(newlindata[0]))
+                            try:
+                                self.data[0][fields[x] + ' deg'].append(float(newlindata[1]))
+                            except KeyError:
+                                self.data[0][fields[x] + ' deg'] = [float(newlindata[1]),]
+                        elif(',' in linedata[x]):
+                            self.data[0][fields[x]].append(complex(linedata[x].replace(',','+').replace('+-','-') + 'j'))
                         else:
-                            self.data[case][fields[x]].append(float(linedata[x]))
+                            self.data[0][fields[x]].append(float(linedata[x]))
+                    
+
 
     def parse_from_csv(self, filepath):
         with open(filepath, mode='r') as csv_file:
@@ -148,6 +179,8 @@ class Dataset:
 
     def parse_from_expression(self):
         f, g, ph, gd = self.tf.getBode()
+        tstep, stepr = signal.step(self.tf.tf_object, N=5000)
+        timp, impr = signal.impulse(self.tf.tf_object, N=5000)
         z, p = self.tf.getZP()
         self.data = [{}]
         self.zeros = [{}]
@@ -156,6 +189,10 @@ class Dataset:
         self.data[0]['g'] = g
         self.data[0]['ph'] = ph
         self.data[0]['gd'] = gd
+        self.data[0]['tstep'] = tstep
+        self.data[0]['stepr'] = stepr
+        self.data[0]['timp'] = timp
+        self.data[0]['impr'] = impr
         self.zeros[0] = z
         self.poles[0] = p
         self.suggestedXsource = 'f'

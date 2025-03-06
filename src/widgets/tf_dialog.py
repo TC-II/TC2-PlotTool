@@ -28,7 +28,6 @@ class TFDialog(QtWidgets.QDialog, Ui_tf_window):
 
     def drawExpression(self, txt):
         try:
-            self.processTFValues()
             canvas = self.expr_plot.canvas
             canvas.ax.clear()
             canvas.ax.set_axis_off()
