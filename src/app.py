@@ -13,8 +13,8 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     if(os.name == 'nt'):
         import ctypes
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('tc2.filterplottool.1')
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('tc2.plottool.1')
     window = MainWindow()
-    window.setWindowIcon(QtGui.QIcon('icon.png'))
     window.show()
+    window.setWindowIcon(QtGui.QIcon('icon.png'))
     sys.exit(app.exec())
