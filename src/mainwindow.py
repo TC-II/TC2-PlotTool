@@ -148,47 +148,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             [ self.plot_4_1, self.plot_4_2 ],
             [ self.plot_5 ],
         ]
-
+        self.dataline_gb.setEnabled(False)
 
     def updateFilterLegends(self):
-        if(self.cb_flegends.isChecked()):
-            self.fplot_att.canvas.ax.legend()
-            self.fplot_mag.canvas.ax.legend()
-            self.fplot_phase.canvas.ax.legend()
-            self.fplot_gd.canvas.ax.legend()
-            self.fplot_step.canvas.ax.legend()
-            self.fplot_impulse.canvas.ax.legend()
-            self.fplot_pz.canvas.ax.legend()
-        else:           
-            self.fplot_att.canvas.ax.get_legend().remove()
-            self.fplot_mag.canvas.ax.get_legend().remove()
-            self.fplot_phase.canvas.ax.get_legend().remove()
-            self.fplot_gd.canvas.ax.get_legend().remove()
-            self.fplot_step.canvas.ax.get_legend().remove()
-            self.fplot_impulse.canvas.ax.get_legend().remove()
-            self.fplot_pz.canvas.ax.get_legend().remove()
-        self.fplot_att.canvas.draw_idle()
-        self.fplot_mag.canvas.draw_idle()
-        self.fplot_phase.canvas.draw_idle()
-        self.fplot_gd.canvas.draw_idle()
-        self.fplot_step.canvas.draw_idle()
-        self.fplot_impulse.canvas.draw_idle()
-        self.fplot_pz.canvas.draw_idle()
+        pass
 
     def updateComparisonAproxOptions(self, index):
-        self.compareapprox_cb.model().item(index).setCheckState(False)
-        for i in range(self.compareapprox_cb.count()):
-            self.compareapprox_cb.model().item(i).setEnabled(i != index)
+        pass
 
     def selectUseCanonical(self):
-        self.actionColorsCanonical.setChecked(True)
-        self.actionColorsRandom.setChecked(False)
-        self.updateFilterPlots()
+        pass
 
     def selectUseRandom(self):
-        self.actionColorsCanonical.setChecked(False)
-        self.actionColorsRandom.setChecked(True)
-        self.updateFilterPlots()
+        pass
 
     def selectUseHz(self):
         if(self.actionUse_Hz.isChecked()):
@@ -207,43 +179,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.selectUseHz()
 
     def updateFequencySettings(self, useHz):
-        self.use_hz = useHz
-        suffix = 'Hz' if useHz else 'rad/s'
-        self.label_fpmin.setText('fp min' if useHz else 'ωp min')
-        self.label_famin.setText('fa min' if useHz else 'ωa min')
-        self.label_fp.setText('fp' if useHz else 'ωp')
-        self.label_fa.setText('fa' if useHz else 'ωa')
-        self.label_f0.setText('f0' if useHz else 'ω0')
-        self.label_fRG.setText('fRG' if useHz else 'ωRG')
-
-        self.fp_box.setSuffix(suffix)
-        self.fa_box.setSuffix(suffix)
-        self.fp_min_box.setSuffix(suffix)
-        self.fa_min_box.setSuffix(suffix)
-        self.bw_max_box.setSuffix(suffix)
-        self.bw_min_box.setSuffix(suffix)
-        self.frg_box.setSuffix(suffix)
-        self.f0_box.setSuffix(suffix)
-
-        self.fp_box.setValue(self.fp_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.fa_box.setValue(self.fa_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.fp_min_box.setValue(self.fp_min_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.fa_min_box.setValue(self.fa_min_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.bw_max_box.setValue(self.bw_max_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.bw_min_box.setValue(self.bw_min_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.frg_box.setValue(self.frg_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.f0_box.setValue(self.f0_box.value()*(W_TO_F if useHz else F_TO_W))
-        self.define_with_box.setItemText(0, 'fa, fp' if useHz else 'ωa, ωp')
-        self.define_with_box.setItemText(1, 'f0, Bw' if useHz else 'ω0, Bw')
-
-        self.SING_B_TO_F = W_TO_F if self.use_hz else 1
-        self.SING_F_TO_B = F_TO_W if self.use_hz else 1
-        self.PZ_XLABEL = f'$\sigma$ [1/s]' if self.use_hz else '$\sigma$ ($rad/s$)'
-        self.PZ_YLABEL = f'$jf$ [Hz]' if self.use_hz else '$j\omega$ ($rad/s$)'
-        self.FREQ_LABEL = f'Frecuencia [Hz]' if self.use_hz else 'Frecuencia angular ($rad/s$)'
-
-        self.updateFilterPlots()
-        self.updateStagePlots()
+        pass
 
     def addDataset(self, ds):
         qlwt = QListWidgetItem()
@@ -416,268 +352,19 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.updateSelectedDataline()
 
     def buildFilterFromParams(self):
-        # if(self.prevFilterType != self.tipo_box.currentIndex()):
-        #     self.compareapprox_cb.setCurrentIndexes([])
-        self.prevFilterType = self.tipo_box.currentIndex()
-        if self.tipo_box.currentIndex() in [Filter.BAND_PASS, Filter.BAND_REJECT]:
-            wa = [self.SING_F_TO_B * self.fa_min_box.value(), self.SING_F_TO_B * self.fa_max_box.value()]
-            wp = [self.SING_F_TO_B * self.fp_min_box.value(), self.SING_F_TO_B * self.fp_max_box.value()]
-        else:
-            wa = self.SING_F_TO_B * self.fa_box.value()
-            wp = self.SING_F_TO_B * self.fp_box.value()
-            
-        params = {
-            "name": self.filtername_box.text(),
-            "filter_type": self.tipo_box.currentIndex(),
-            "approx_type": self.aprox_box.currentIndex(),
-            "helper_approx": self.compareapprox_cb.currentIndexes(),
-            "helper_N": self.comp_N_box.value(),
-            "is_helper": False,
-            "define_with": self.define_with_box.currentIndex(),
-            "N_min": self.N_min_box.value(),
-            "N_max": self.N_max_box.value(),
-            "gain": 10**(self.gain_box.value()/20),
-            "denorm": self.denorm_box.value(),
-            "aa_dB": self.aa_box.value(),
-            "ap_dB": self.ap_box.value(),
-            "wa": wa,
-            "wp": wp,
-            "w0": self.SING_F_TO_B * self.f0_box.value(),
-            "bw": [self.SING_F_TO_B * self.bw_min_box.value(), self.SING_F_TO_B * self.bw_max_box.value()],
-            "gamma": self.tol_box.value(),
-            "tau0": self.tau0_box.value(),
-            "wrg": self.SING_F_TO_B * self.frg_box.value(),
-        }
-        return AnalogFilter(**params)
+        pass
     
     def addFilter(self):
-        newFilter = self.buildFilterFromParams()
-        valid, msg = newFilter.validate()
-        if not valid:
-            self.pmptd.setErrorMsg(msg)
-            self.pmptd.open()
-            self.pmptd.setFocus()
-            return
-        ds = Dataset(filepath='', origin=newFilter, title=self.filtername_box.text())
-        self.filters.append(ds)
-        self.selfil_cb.blockSignals(True)
-        self.stages_selfil_cb.blockSignals(True)
-        self.selfil_cb.addItem(ds.title, ds)
-        self.stages_selfil_cb.addItem(ds.title, ds)
-        self.selfil_cb.blockSignals(False)
-        self.stages_selfil_cb.blockSignals(False)
-        self.chg_filter_btn.setEnabled(True)
-        self.fgetHhuman_btn.setEnabled(True)
-        self.fgetHlatex_btn.setEnabled(True)
-        self.sgetHhuman_btn.setEnabled(True)
-        self.sgetHlatex_btn.setEnabled(True)
-        self.addDataset(ds)
+        pass
     
     def makeFilterTemplateSymmetric(self):
-        fa = [self.fa_min_box.value(), self.fa_max_box.value()]
-        fp = [self.fp_min_box.value(), self.fp_max_box.value()]
-        f0 = 0
-        bw = [0, 0]
-        if(self.tipo_box.currentIndex() == Filter.BAND_PASS):
-            f0 = np.sqrt(fp[0] * fp[1])
-            bw[0] = fp[1] - fp[0]
-            if(fa[0] * fa[1] != f0**2):
-                famincalc = f0**2 / fa[1]
-                famaxcalc = f0**2 / fa[0]
-                if(famincalc > fa[0]):
-                    fa[0] = famincalc
-                elif(famaxcalc < fa[1]):
-                    fa[1] = famaxcalc
-            bw[1] = fa[1] - fa[0]
-
-        elif(self.tipo_box.currentIndex() == Filter.BAND_REJECT):
-            f0 = np.sqrt(fa[0] * fa[1])
-            bw[0] = fa[1] - fa[0]
-            if(fp[0] * fp[1] != f0**2):
-                fpmincalc = f0**2 / fp[1]
-                fpmaxcalc = f0**2 / fp[0]
-                if(fpmincalc > fp[0]):
-                    fp[0] = fpmincalc
-                elif(fpmaxcalc < fp[1]):
-                    fp[1] = fpmaxcalc    
-            bw[1] = fp[1] - fp[0]
-
-        self.fa_min_box.setValue(fa[0])
-        self.fa_max_box.setValue(fa[1])
-        self.fp_min_box.setValue(fp[0])
-        self.fp_max_box.setValue(fp[1])
-        self.f0_box.setValue(f0)
-        self.bw_min_box.setValue(bw[0])
-        self.bw_max_box.setValue(bw[1])
+        pass
 
     def changeSelectedFilter(self):
-        newFilter = self.buildFilterFromParams()
-        valid, msg = newFilter.validate()
-        if not valid:
-            self.pmptd.setErrorMsg(msg)
-            self.pmptd.setFocus()
-            return
-        temp_datalines = self.selected_dataset_data.datalines
-        ds = Dataset('', self.filtername_box.text(), newFilter)
-        ds.datalines = temp_datalines
-        ds.title = self.filtername_box.text()
-        self.selected_dataset_widget.setText(self.filtername_box.text())
-        self.selfil_cb.setItemData(self.selfil_cb.currentIndex(), ds)
-        self.selfil_cb.setItemText(self.selfil_cb.currentIndex(), ds.title)
-        self.stages_selfil_cb.setItemData(self.stages_selfil_cb.currentIndex(), ds)
-        self.stages_selfil_cb.setItemText(self.selfil_cb.currentIndex(), ds.title)
-        self.selected_dataset_widget.setData(Qt.UserRole, ds)
-        self.filters[self.selfil_cb.currentIndex()] = ds
-        self.populateSelectedDatasetDetails(self.selected_dataset_widget, None)
+        pass
 
     def updateFilterParametersAvailable(self):
-        if self.tipo_box.currentIndex() == Filter.LOW_PASS or self.tipo_box.currentIndex() == Filter.HIGH_PASS:
-            for i in range(Filter.LEGENDRE + 1):
-                self.aprox_box.model().item(i).setEnabled(True)
-                self.compareapprox_cb.model().item(i).setEnabled(True)
-            for i in range(Filter.BESSEL, Filter.GAUSS + 1):
-                self.aprox_box.model().item(i).setEnabled(True)
-                self.compareapprox_cb.model().item(i).setEnabled(True)
-            if not self.aprox_box.model().item(self.aprox_box.currentIndex()).isEnabled():
-                self.aprox_box.setCurrentIndex(Filter.BUTTERWORTH)
-                self.compareapprox_cb.setCurrentIndex(Filter.BUTTERWORTH)
-            self.updateComparisonAproxOptions(self.aprox_box.currentIndex())
-            self.define_with_box.setVisible(False)
-            self.label_definewith.setVisible(False)
-            self.ap_box.setVisible(True)
-            self.label_ap.setVisible(True)
-            self.aa_box.setVisible(True)
-            self.label_aa.setVisible(True)
-            self.fp_box.setVisible(True)
-            self.label_fp.setVisible(True)
-            self.fa_box.setVisible(True)
-            self.label_fa.setVisible(True)
-            self.fa_min_box.setVisible(False)
-            self.symmetrize_btn.setVisible(False)
-            self.label_famin.setVisible(False)
-            self.fa_max_box.setVisible(False)
-            self.label_famax.setVisible(False)
-            self.fp_min_box.setVisible(False)
-            self.label_fpmin.setVisible(False)
-            self.fp_max_box.setVisible(False)
-            self.label_fpmax.setVisible(False)
-            self.f0_box.setVisible(False)
-            self.label_f0.setVisible(False)
-            self.bw_min_box.setVisible(False)
-            self.label_bwmin.setVisible(False)
-            self.bw_max_box.setVisible(False)
-            self.label_bwmax.setVisible(False)
-            self.tau0_box.setVisible(False)
-            self.label_tau0.setVisible(False)
-            self.frg_box.setVisible(False)
-            self.label_fRG.setVisible(False)
-            self.tol_box.setVisible(False)
-            self.label_tolerance.setVisible(False)
-
-        elif self.tipo_box.currentIndex() == Filter.BAND_PASS or self.tipo_box.currentIndex() == Filter.BAND_REJECT:
-            for i in range(Filter.LEGENDRE + 1):
-                self.aprox_box.model().item(i).setEnabled(True)
-                self.compareapprox_cb.model().item(i).setEnabled(True)
-            for i in range(Filter.BESSEL, Filter.GAUSS + 1):
-                self.aprox_box.model().item(i).setEnabled(True)
-                self.compareapprox_cb.model().item(i).setEnabled(True)
-            if not self.aprox_box.model().item(self.aprox_box.currentIndex()).isEnabled():
-                self.aprox_box.setCurrentIndex(Filter.BUTTERWORTH)
-                self.compareapprox_cb.setCurrentIndex(Filter.BUTTERWORTH)
-            self.define_with_box.setVisible(True)
-            self.label_definewith.setVisible(True)
-            self.ap_box.setVisible(True)
-            self.label_ap.setVisible(True)
-            self.aa_box.setVisible(True)
-            self.label_aa.setVisible(True)
-            self.fp_box.setVisible(False)
-            self.label_fp.setVisible(False)
-            self.fa_box.setVisible(False)
-            self.label_fa.setVisible(False)
-            self.tau0_box.setVisible(False)
-            self.label_tau0.setVisible(False)
-            self.frg_box.setVisible(False)
-            self.label_fRG.setVisible(False)
-            self.tol_box.setVisible(False)
-            self.label_tolerance.setVisible(False)
-
-            if self.define_with_box.currentIndex() == Filter.TEMPLATE_FREQS:
-                self.fa_min_box.setVisible(True)
-                self.label_famin.setVisible(True)
-                self.fa_max_box.setVisible(True)
-                self.label_famax.setVisible(True)
-                self.fp_min_box.setVisible(True)
-                self.label_fpmin.setVisible(True)
-                self.fp_max_box.setVisible(True)
-                self.label_fpmax.setVisible(True)
-                self.f0_box.setVisible(False)
-                self.label_f0.setVisible(False)
-                self.bw_min_box.setVisible(False)
-                self.label_bwmin.setVisible(False)
-                self.bw_max_box.setVisible(False)
-                self.label_bwmax.setVisible(False)
-                self.symmetrize_btn.setVisible(True)
-
-            if self.define_with_box.currentIndex() == Filter.F0_BW:
-                self.fa_min_box.setVisible(False)
-                self.label_famin.setVisible(False)
-                self.fa_max_box.setVisible(False)
-                self.label_famax.setVisible(False)
-                self.fp_min_box.setVisible(False)
-                self.label_fpmin.setVisible(False)
-                self.fp_max_box.setVisible(False)
-                self.label_fpmax.setVisible(False)
-                self.f0_box.setVisible(True)
-                self.label_f0.setVisible(True)
-                self.bw_min_box.setVisible(True)
-                self.label_bwmin.setVisible(True)
-                self.bw_max_box.setVisible(True)
-                self.label_bwmax.setVisible(True)
-                self.symmetrize_btn.setVisible(False)
-        
-        elif self.tipo_box.currentIndex() == Filter.GROUP_DELAY:
-            for i in range(Filter.LEGENDRE + 1):
-                self.aprox_box.model().item(i).setEnabled(False)
-                self.compareapprox_cb.model().item(i).setEnabled(False)
-                self.compareapprox_cb.model().item(i).setChecked(False)
-            for i in range(Filter.BESSEL, Filter.GAUSS + 1):
-                self.aprox_box.model().item(i).setEnabled(True)
-                self.compareapprox_cb.model().item(i).setEnabled(True)
-            if not self.aprox_box.model().item(self.aprox_box.currentIndex()).isEnabled():
-                self.aprox_box.setCurrentIndex(Filter.BESSEL)
-                self.compareapprox_cb.setCurrentIndex(Filter.BESSEL)
-            
-            self.define_with_box.setVisible(False)
-            self.label_definewith.setVisible(False)
-            self.ap_box.setVisible(False)
-            self.label_ap.setVisible(False)
-            self.aa_box.setVisible(False)
-            self.label_aa.setVisible(False)
-            self.fp_box.setVisible(False)
-            self.label_fp.setVisible(False)
-            self.fa_box.setVisible(False)
-            self.label_fa.setVisible(False)
-            self.fa_min_box.setVisible(False)
-            self.label_famin.setVisible(False)
-            self.fa_max_box.setVisible(False)
-            self.label_famax.setVisible(False)
-            self.fp_min_box.setVisible(False)
-            self.label_fpmin.setVisible(False)
-            self.fp_max_box.setVisible(False)
-            self.label_fpmax.setVisible(False)
-            self.f0_box.setVisible(False)
-            self.label_f0.setVisible(False)
-            self.bw_min_box.setVisible(False)
-            self.label_bwmin.setVisible(False)
-            self.bw_max_box.setVisible(False)
-            self.label_bwmax.setVisible(False)
-            self.tau0_box.setVisible(True)
-            self.label_tau0.setVisible(True)
-            self.frg_box.setVisible(True)
-            self.label_fRG.setVisible(True)
-            self.tol_box.setVisible(True)
-            self.label_tolerance.setVisible(True)
-            self.symmetrize_btn.setVisible(False)
+        pass
 
     def condition_canvas(self, canvas, xlabel, ylabel, xscale='linear', yscale='linear', grid=True):
         canvas.ax.clear()
@@ -692,268 +379,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             label.set_fontsize(self.plt_ticksize_sb.value())
 
     def updateFilterPlots(self):
-        random_colors = np.copy(DEFAULT_COLORS)
-        np.random.shuffle(random_colors)
-        if(self.actionColorsCanonical.isChecked()):
-            color_arr = CANON_COLORS
-        else:
-            color_arr = random_colors
-        curraprox = self.aprox_box.currentIndex()
-        # print("Update filter plots")
-        # return
-        if(not isinstance(self.selected_dataset_data, Dataset)): return
-        if(self.filterZerCursor):
-            for sel in self.filterZerCursor.selections:
-                self.filterZerCursor.remove_selection(sel)
-
-        if self.filterPoleCursor :
-            for sel in self.filterPoleCursor.selections:
-                self.filterPoleCursor.remove_selection(sel)
-        self.poles_acum = []
-        self.zeros_acum = []
-
-        attcanvas = self.fplot_att.canvas
-        magcanvas = self.fplot_mag.canvas
-        phasecanvas = self.fplot_phase.canvas
-        groupdelaycanvas = self.fplot_gd.canvas
-        stepcanvas = self.fplot_step.canvas
-        impulsecanvas = self.fplot_impulse.canvas
-        self.condition_canvas(attcanvas, self.FREQ_LABEL, 'Atenuación [dB]')
-        self.condition_canvas(magcanvas, self.FREQ_LABEL, 'Magnitud [dB]', 'log')
-        self.condition_canvas(phasecanvas, self.FREQ_LABEL, 'Fase [$^o$]', 'log')
-        phasecanvas.ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[1.8,2.25,4.5,9]))
-        self.condition_canvas(groupdelaycanvas, self.FREQ_LABEL, 'Retardo de grupo [s]', 'log')
-        self.condition_canvas(self.fplot_pz.canvas, '', '')
-        self.condition_canvas(stepcanvas, 'Tiempo [s]', 'Respuesta [V]')
-        self.condition_canvas(impulsecanvas, 'Tiempo [s]', 'Respuesta [V]')
-        filtds = self.selected_dataset_data
-
-        # print("Plots conditioned")
-
-        tstep, stepres = signal.step(filtds.tf.tf_object, N=5000)
-        timp, impres = signal.impulse(filtds.tf.tf_object, N=5000)
-        
-        z, p = filtds.origin.tf.getZP(self.use_hz)
-        minf, maxf = self.getRelevantFrequencies(z, p)
-        minval = minf/100
-        maxval = maxf*100
-        f,g,ph,gd = filtds.tf.getBode(start=np.log10(minval), stop=np.log10(maxval),db=True, use_hz=self.use_hz)
-        gain_offset = 20*np.log10(filtds.origin.gain)
-        magcanvas.ax.plot(f, g, label = str(filtds.origin), color=color_arr[curraprox])
-        phasecanvas.ax.plot(f, ph, label = str(filtds.origin), color=color_arr[curraprox])
-        groupdelaycanvas.ax.plot(f, gd, label = str(filtds.origin), color=color_arr[curraprox])
-        stepcanvas.ax.plot(tstep, stepres, label = str(filtds.origin), color=color_arr[curraprox])
-        impulsecanvas.ax.plot(timp, impres, label = str(filtds.origin), color=color_arr[curraprox])
-
-        magcanvas.ax.set_xlim([minval, maxval])
-        phasecanvas.ax.set_xlim([minval, maxval])
-
-        ap = filtds.origin.ap_dB - gain_offset
-        aa = filtds.origin.aa_dB - gain_offset
-        
-        # print("Plots plotted 1")
-        minp, maxp = self.getRelevantFrequencies(z, p)
-        xmin = 0
-        xmax = 0
-        ymax = aa*2
-        patches = []
-        if filtds.origin.filter_type == Filter.LOW_PASS:
-            fp = filtds.origin.wp * self.SING_B_TO_F
-            fa = filtds.origin.wa * self.SING_B_TO_F
-            deltaf = (fa - fp)/2
-            xmax = fa + deltaf
-            xmax = np.max([maxp, fa])*1.4
-            xmin = np.max([0, fp - deltaf])
-            xmin = 0
-
-            attcanvas.ax.fill_between([0, fp], [ap, ap], ymax, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.fill_between([fa, maxp*100], [aa, aa], -gain_offset, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.set_ylim([-gain_offset, ymax])
-            if(filtds.origin.denorm == 0):
-                patches.append(Circle((0, 0), fp, fill=False, linestyle=':', alpha=0.15))
-            elif(filtds.origin.denorm == 100):
-                patches.append(Circle((0, 0), fa, fill=False, linestyle=':', alpha=0.15))
-
-        elif filtds.origin.filter_type == Filter.HIGH_PASS:
-            fp = filtds.origin.wp * self.SING_B_TO_F
-            fa = filtds.origin.wa * self.SING_B_TO_F
-            deltaf = (fp - fa)/2
-            xmax = fp + deltaf
-            xmax = np.max([fp, maxp])*1.4
-            xmin = np.max([0, fa - deltaf])
-            xmin = 0
-
-            attcanvas.ax.fill_between([fp, maxp*100], [ap, ap], ymax, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.fill_between([0, fa], [aa, aa], -gain_offset, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.set_ylim([-gain_offset, ymax])
-            if(filtds.origin.denorm == 0):
-                patches.append(Circle((0, 0), fp, fill=False, linestyle=':', alpha=0.15))
-            elif(filtds.origin.denorm == 100):
-                patches.append(Circle((0, 0), fa, fill=False, linestyle=':', alpha=0.15))
-
-        elif filtds.origin.filter_type == Filter.BAND_PASS:
-            fp = [w * self.SING_B_TO_F for w in filtds.origin.wp]
-            fa = [w * self.SING_B_TO_F for w in filtds.origin.wa]
-            f0 = self.SING_B_TO_F * filtds.origin.w0
-            reqfa = [w * self.SING_B_TO_F for w in filtds.origin.reqwa] if self.define_with_box.currentIndex() == Filter.TEMPLATE_FREQS else fa
-            deltaf = (fa[1] - fa[0])/2
-            xmax = fa[1] + deltaf
-            xmax = np.max([xmax, maxp])*1.4
-            xmin = np.max([0, fa[0] - deltaf])
-            xmin = 0
-            
-            attcanvas.ax.fill_between([0,  reqfa[0]], [aa, aa], -gain_offset, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.fill_between([reqfa[1], maxp*100 ], [aa, aa], -gain_offset, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            
-            if self.define_with_box.currentIndex() == Filter.TEMPLATE_FREQS:
-                if(fa[0] != reqfa[0]):
-                    attcanvas.ax.fill_between([fa[0],  reqfa[0]], [aa, aa], -gain_offset, facecolor=ADD_TEMPLATE_FACE_COLOR, edgecolor=ADD_TEMPLATE_EDGE_COLOR, hatch='//', linewidth=0)
-                elif(fa[1] != reqfa[1]):
-                    attcanvas.ax.fill_between([reqfa[1], fa[1] ], [aa, aa], -gain_offset, facecolor=ADD_TEMPLATE_FACE_COLOR, edgecolor=ADD_TEMPLATE_EDGE_COLOR, hatch='//', linewidth=0)
-                else:
-                    pass
-            attcanvas.ax.fill_between([fp[0], fp[1]], [ap, ap], ymax, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.set_ylim([-gain_offset, ymax])
-            
-            if(filtds.origin.denorm == 0):
-                mintransband = np.min([fp[0]-fa[0], fa[1]-fp[1]])
-                deltafp = fp[1]-fp[0]
-                bpmeritfig = deltafp/mintransband
-                if(bpmeritfig <= 3):
-                    patches.append(Circle((0, 0), f0, fill=False, linestyle=':', alpha=0.15))
-                    patches.append(Circle((0, f0), np.abs(fp[0] - fp[1])/2, fill=False, linestyle=':', alpha=0.15))
-                    patches.append(Circle((0, -f0), np.abs(fp[0] - fp[1])/2, fill=False, linestyle=':', alpha=0.15))
-                else:
-                    patches.append(Circle((0, 0), fp[0], fill=False, linestyle=':', alpha=0.15))
-                    patches.append(Circle((0, 0), fp[1], fill=False, linestyle=':', alpha=0.15))
-
-
-
-        elif filtds.origin.filter_type == Filter.BAND_REJECT:
-            fp = [w * self.SING_B_TO_F for w in filtds.origin.wp]
-            reqfp = [w * self.SING_B_TO_F for w in filtds.origin.reqwp] if self.define_with_box.currentIndex() == Filter.TEMPLATE_FREQS else fp
-            fa = [w * self.SING_B_TO_F for w in filtds.origin.wa]
-            f0 = self.SING_B_TO_F * filtds.origin.w0
-            deltaf = (fp[1] - fp[0])/2
-            xmax = fp[1] + deltaf
-            xmax = np.max([xmax, maxp])*1.4
-            xmin = np.max([0, fp[0] - deltaf])
-            xmin = 0
-            
-            attcanvas.ax.fill_between([0,  reqfp[0]], [ap, ap], ymax, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.fill_between([reqfp[1], maxp*100 ], [ap, ap], ymax, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            if self.define_with_box.currentIndex() == Filter.TEMPLATE_FREQS:
-                if(fp[0] != reqfp[0]):
-                    attcanvas.ax.fill_between([fp[0], reqfp[0]], [ap, ap], ymax, facecolor='#555555', edgecolor='#121212', hatch='//', linewidth=0)
-                elif(fp[1] != reqfp[1]):
-                    attcanvas.ax.fill_between([reqfp[1], fp[1]], [ap, ap], ymax, facecolor='#555555', edgecolor='#121212', hatch='//', linewidth=0)
-                else:
-                    print("WTF")
-            attcanvas.ax.fill_between([fa[0], fa[1]], [aa, aa], -gain_offset, facecolor=TEMPLATE_FACE_COLOR, edgecolor=TEMPLATE_EDGE_COLOR, hatch='\\', linewidth=0)
-            attcanvas.ax.set_ylim([-gain_offset, ymax])
-            
-            if(filtds.origin.denorm == 0):
-                mintransband = np.min([fa[0]-fp[0], fp[1]-fa[1]])
-                deltafa = fa[1]-fa[0]
-                brmeritfig = deltafa/mintransband
-                if(brmeritfig <= 3):
-                    patches.append(Circle((0, 0), f0, fill=False, linestyle=':', alpha=0.15))
-                    patches.append(Circle((0, f0), np.abs(fp[0] - fp[1])/2, fill=False, linestyle=':', alpha=0.15))
-                    patches.append(Circle((0, -f0), np.abs(fp[0] - fp[1])/2, fill=False, linestyle=':', alpha=0.15))
-                else:
-                    patches.append(Circle((0, 0), fp[0], fill=False, linestyle=':', alpha=0.15))
-                    patches.append(Circle((0, 0), fp[1], fill=False, linestyle=':', alpha=0.15))
-        
-        elif filtds.origin.filter_type == Filter.GROUP_DELAY:
-            frg = filtds.origin.wrg * self.SING_B_TO_F
-            xmax = 2 * frg
-            xmin = 0
-            groupdelaycanvas.ax.fill_between([0,  frg], [filtds.origin.tau0, filtds.origin.tau0], filtds.origin.tau0*(1 - filtds.origin.gamma/100), facecolor=ADD_TEMPLATE_FACE_COLOR, edgecolor=ADD_TEMPLATE_EDGE_COLOR, hatch='//', linewidth=0)
-        attcanvas.ax.set_xlim(xmin, xmax)
-        fa, ga, pa = filtds.origin.tf.getBodeMagFast(linear=True, start=0.5*xmin, stop=2*xmax, db=True, num=10000, use_hz=self.use_hz)
-        with np.errstate(divide='ignore'): 
-            attcanvas.ax.plot(fa, -ga, label = str(filtds.origin), color=color_arr[curraprox])
-
-        # print("Plots plotted 2")
-        self.fplot_pz.canvas.ax.axhline(0, color="black", alpha=0.1)
-        self.fplot_pz.canvas.ax.axvline(0, color="black", alpha=0.1)
-        minf, maxf = self.getRelevantFrequencies(z, p)
-        zx = z.real
-        zy = z.imag
-        px = p.real
-        py = p.imag
-        zeroes = self.fplot_pz.canvas.ax.scatter(zx, zy, marker='o', label = str(filtds.origin), color=color_arr[curraprox])
-        self.fplot_pz.canvas.ax.set_xlabel(self.PZ_XLABEL)
-        self.fplot_pz.canvas.ax.set_ylabel(self.PZ_YLABEL)
-        self.zeros_acum = np.append(self.zeros_acum, zeroes)
-
-        # print("Plots plotted 3")
-        maxf2 = 0
-        for helper in filtds.origin.helperFilters:
-            fa, ga, pa = helper.tf.getBodeMagFast(linear=True, start=0.5*xmin, stop=2*xmax, db=True, num=10000, use_hz=self.use_hz)
-            attcanvas.ax.plot(fa, -ga, label = str(helper), color=color_arr[helper.approx_type])
-            f,g,ph,gd = helper.tf.getBode(start=np.log10(minval), stop=np.log10(maxval),db=True, use_hz=self.use_hz)
-            z, p = helper.tf.getZP(self.use_hz)
-            p = np.append(p, [minf, maxf])
-            minf2, maxf2 = self.getRelevantFrequencies(z, p)
-
-            tstep, stepres = signal.step(helper.tf.tf_object, N=5000)
-            timp, impres = signal.impulse(helper.tf.tf_object, N=5000)
-            magcanvas.ax.plot(f, g, label = str(helper), color=color_arr[helper.approx_type])
-            phasecanvas.ax.plot(f, ph, label = str(helper), color=color_arr[helper.approx_type])
-            groupdelaycanvas.ax.plot(f, gd, label = str(helper), color=color_arr[helper.approx_type])
-            stepcanvas.ax.plot(tstep, stepres, label = str(helper), color=color_arr[helper.approx_type])
-            impulsecanvas.ax.plot(timp, impres, label = str(helper), color=color_arr[helper.approx_type])
-            zeroes = self.fplot_pz.canvas.ax.scatter(z.real, z.imag, marker='o', label = str(helper), color=color_arr[helper.approx_type])
-            self.zeros_acum = np.append(self.zeros_acum, zeroes)
-
-        self.fplot_pz.canvas.ax.set_prop_cycle(None) # reset colors
-        if(self.cb_frelcirc.isChecked()):
-            for patch in patches:
-                self.fplot_pz.canvas.ax.add_patch(patch)
-        poles = self.fplot_pz.canvas.ax.scatter(px, py, marker='x', color=color_arr[curraprox])
-        self.poles_acum = np.append(self.poles_acum, poles)
-        
-        for helper in filtds.origin.helperFilters:
-            z, p = helper.tf.getZP(self.use_hz)
-            poles = self.fplot_pz.canvas.ax.scatter(p.real, p.imag, marker='x', color=color_arr[helper.approx_type])
-            self.poles_acum = np.append(self.poles_acum, poles)    
-        self.filterPoleCursor = cursor(self.poles_acum, multiple=True, highlight=True)
-        self.filterPoleCursor.connect("add", self.formatPoleAnnotation)
-        self.filterZerCursor = cursor(self.zeros_acum, multiple=True, highlight=True)
-        self.filterZerCursor.connect("add", self.formatZeroAnnotation)
-
-
-        actualmax = max([maxf, maxf2])
-        self.fplot_pz.canvas.ax.axis('equal')
-        sizes = self.fplot_pz.canvas.ax.figure.get_size_inches()
-        if(sizes[0] > sizes[1]):
-            self.fplot_pz.canvas.ax.set_xlim(left=-actualmax*PZ_LIM_SCALING, right=actualmax*PZ_LIM_SCALING)
-            self.fplot_pz.canvas.ax.set_ylim(bottom=-actualmax*PZ_LIM_SCALING, top=actualmax*PZ_LIM_SCALING)
-        else:
-            self.fplot_pz.canvas.ax.set_ylim(bottom=-actualmax*PZ_LIM_SCALING, top=actualmax*PZ_LIM_SCALING)
-            self.fplot_pz.canvas.ax.set_xlim(left=-actualmax*PZ_LIM_SCALING, right=actualmax*PZ_LIM_SCALING)
-
-        if(len(filtds.origin.helperFilters) > 0 and self.cb_flegends.isChecked()):
-            attcanvas.ax.legend()
-            magcanvas.ax.legend()
-            phasecanvas.ax.legend()
-            groupdelaycanvas.ax.legend()
-            self.fplot_pz.canvas.ax.legend()
-            stepcanvas.ax.legend()
-            impulsecanvas.ax.legend()
-        attcanvas.draw_idle()
-        magcanvas.draw_idle()
-        phasecanvas.draw_idle()
-        groupdelaycanvas.draw_idle()
-        
-        self.fplot_pz.canvas.draw_idle()
-        stepcanvas.draw_idle()
-        impulsecanvas.draw_idle()
-
-        self.redrawFilterPlotsArr = [True] * len(self.filterPlots)
-        self.redrawFilterPlotsArr[self.tabWidget_2.currentIndex()] = False
-        self.filterPlots[self.tabWidget_2.currentIndex()].canvas.draw_idle()
+        pass
     
     def redrawFilterPlots(self, index):
         if(self.redrawFilterPlotsArr[index]):
@@ -966,247 +392,45 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         
 
     def updateFilterStages(self):
-        self.stages_list.blockSignals(True)
-        self.stages_list.clear()
-        self.zeros_list.clear()
-        self.poles_list.clear()
-        self.remaining_gain_text.clear()
-        self.total_filtdrloss_label.clear()
-        if self.selected_dataset_data.type == 'filter':
-            self.new_stage_btn.setEnabled(True)
-            self.remove_stage_btn.setEnabled(True)
-            zeros, poles = self.selected_dataset_data.origin.tf.getZP(False)
-            
-            remzeros = np.copy(np.array(self.selected_dataset_data.origin.remainingZeros))
-            for p in poles:
-                qlwt = QListWidgetItem()
-                qlwt.setData(Qt.UserRole, p)
-                qlwt.setText("{0:.3g} ω0={1:.3g} Q={2:.2g}".format(p, np.abs(p), self.calcQ(p)))
-                if(p not in np.array(self.selected_dataset_data.origin.remainingPoles)):
-                    qlwt.setFlags(Qt.ItemFlag.NoItemFlags)
-                self.poles_list.addItem(qlwt)
-            for z in zeros:
-                qlwt = QListWidgetItem()
-                qlwt.setData(Qt.UserRole, z)
-                qlwt.setText("{0:.3g}j".format(np.imag(z)))
-                iz = np.where(remzeros == z)
-                if(len(iz[0]) > 0):
-                    remzeros = np.delete(remzeros, iz[0][0])
-                else:
-                    qlwt.setFlags(Qt.ItemFlag.NoItemFlags)
-                self.zeros_list.addItem(qlwt)
-            for implemented_stage in self.selected_dataset_data.origin.stages:
-                qlwt = QListWidgetItem()
-                qlwt.setData(Qt.UserRole, Dataset(origin=implemented_stage))
-                qlwt.setText(stage_to_str(implemented_stage, 1))
-                self.stages_list.addItem(qlwt)
-            self.remaining_gain_text.setText("{:.2g} dB".format(20*np.log10(self.selected_dataset_data.origin.remainingGain)))
-            self.total_filtdrloss_label.setText("{:.2g} dB".format(self.selected_dataset_data.origin.getStagesDynamicRangeLoss()))
-            self.stage_gain_box.setValue(20*np.log10(self.selected_dataset_data.origin.remainingGain))
-        else:  
-            self.new_stage_btn.setEnabled(False)
-            self.remove_stage_btn.setEnabled(False)
-        
-        self.stages_list.setCurrentRow(self.stages_list.count() - 1)
-        self.stages_list.blockSignals(False)
-        self.updateStagePlots()
+        pass
 
     def stage_sel_changed(self):
-        selected_pol_indexes = [sel.index for sel in self.stageCursorPol.selections]
-        selected_zer_indexes = [sel.index for sel in self.stageCursorZer.selections]
-        
-        for x in range(self.poles_list.count()):
-            pole = self.poles_list.item(x)
-            poledata = pole.data(Qt.UserRole)
-            if(pole.isSelected()):
-                if(x not in selected_pol_indexes):
-                    sel = Selection(
-                        artist=self.splot_fpz.canvas.ax,
-                        target_=[poledata.real, poledata.imag],
-                        index=self.poles_list.row(pole),
-                        dist=0,
-                        annotation=None,
-                        extras=[]
-                    )
-                    self.stageCursorPol.add_selection(sel)
-            else:
-                if(x in selected_pol_indexes):
-                    for sel in self.stageCursorPol.selections:
-                        if(sel.index == x):
-                            self.stageCursorPol.remove_selection(sel)
-
-        for x in range(self.zeros_list.count()):
-            zero = self.zeros_list.item(x)
-            zerodata = zero.data(Qt.UserRole)
-            if(zero.isSelected()):
-                if(x not in selected_zer_indexes):
-                    sel = Selection(
-                        artist=self.splot_fpz.canvas.ax,
-                        target_=[zerodata.real, zerodata.imag],
-                        index=self.zeros_list.row(zero),
-                        dist=0,
-                        annotation=None,
-                        extras=[]
-                    )
-                    self.stageCursorZer.add_selection(sel)
-            else:
-                if(x in selected_zer_indexes):
-                    for sel in self.stageCursorZer.selections:
-                        if(sel.index == x):
-                            self.stageCursorZer.remove_selection(sel)
+        pass
 
     def updateNormalizationCb(self, z, p):
-        auxarr = [len(z), len(p)]
-        self.normalizationtype_cb.clear()
-        if(auxarr == [0, 1]): # LP
-            self.normalizationtype_cb.addItem(NORM_CB_DC)
-        elif(auxarr == [1, 1]):
-            if(np.abs(z[0]) < np.abs(p[0])):
-                self.normalizationtype_cb.addItem(NORM_CB_HF)
-            else:
-                self.normalizationtype_cb.addItem(NORM_CB_DC)
-        elif(auxarr == [0, 2]):
-            self.normalizationtype_cb.addItem(NORM_CB_DC)
-        elif(auxarr == [1, 2]):
-            self.normalizationtype_cb.addItem(NORM_CB_BP)
-        elif(auxarr == [2, 2]):
-            if(np.isclose(np.abs(z[0]), 0, atol=1e-5)):
-                self.normalizationtype_cb.addItem(NORM_CB_HF)
-            else:
-                self.normalizationtype_cb.addItem(NORM_CB_DC)
-                self.normalizationtype_cb.addItem(NORM_CB_HF)
+        pass
 
 
     def updateSelectedPolesFromPlot(self, s):
-        self.poles_list.blockSignals(True)
-        selected_pole_indexes = [sel.index for sel in self.stageCursorPol.selections]
-        dont_add_to_list = False
-        if(s.index in [sel.index for sel in self.stageCursorPol.selections if self.poles_list.item(sel.index).flags() == Qt.ItemFlag.NoItemFlags]):
-            self.stageCursorPol.remove_selection(s)
-            dont_add_to_list = True
-        for x in range(self.poles_list.count()):
-            if(not (x == s.index and dont_add_to_list)):
-                self.poles_list.item(x).setSelected(x in selected_pole_indexes)
-        self.updateNormalizationCb(
-            [x.data(Qt.UserRole) for x in self.zeros_list.selectedIndexes()],
-            [x.data(Qt.UserRole) for x in self.poles_list.selectedIndexes()]
-        )
-        self.poles_list.blockSignals(False)
+        pass
 
     def updateSelectedZerosFromPlot(self, s):
-        self.zeros_list.blockSignals(True)
-        selected_zero_indexes = [sel.index for sel in self.stageCursorZer.selections]
-        dont_add_to_list = False
-        if(s.index in [sel.index for sel in self.stageCursorZer.selections if self.zeros_list.item(sel.index).flags() == Qt.ItemFlag.NoItemFlags]):
-            self.stageCursorZer.remove_selection(s)
-            dont_add_to_list = True
-        for x in range(self.zeros_list.count()):
-            if(not (x == s.index and dont_add_to_list)):
-                self.zeros_list.item(x).setSelected(x in selected_zero_indexes)
-        self.updateNormalizationCb(
-            [x.data(Qt.UserRole) for x in self.zeros_list.selectedIndexes()],
-            [x.data(Qt.UserRole) for x in self.poles_list.selectedIndexes()]
-        )
-        self.zeros_list.blockSignals(False)
+        pass
 
 
     def addFilterStage(self):
-        selected_poles = [x.data(Qt.UserRole) for x in self.poles_list.selectedIndexes()]
-        selected_zeros = [x.data(Qt.UserRole) for x in self.zeros_list.selectedIndexes()]
-        selected_gain = 10**(self.stage_gain_box.value()/20)
-
-        selected_poles_idx = [x.row() for x in self.poles_list.selectedIndexes()]
-        selected_zeros_idx = [x.row() for x in self.zeros_list.selectedIndexes()]
-        selected_poles_idx.sort(reverse=True)
-        selected_zeros_idx.sort(reverse=True)
-
-        if self.selected_dataset_data.origin.addStage(selected_zeros, selected_poles, selected_gain, self.normalizationtype_cb.currentText(), self.cb_symdrl.isChecked(), False):
-            for z in selected_zeros_idx:
-                self.zeros_list.item(z).setFlags(Qt.ItemFlag.NoItemFlags)
-            for p in selected_poles_idx:
-                self.poles_list.item(p).setFlags(Qt.ItemFlag.NoItemFlags)
-        
-            [self.stageCursorPol.remove_selection(sel) for sel in self.stageCursorPol.selections]
-            [self.stageCursorZer.remove_selection(sel) for sel in self.stageCursorZer.selections]
-            qlwt = QListWidgetItem()
-            qlwt.setData(Qt.UserRole, Dataset(origin=self.selected_dataset_data.origin.stages[-1]))
-            qlwt.setText(stage_to_str(self.selected_dataset_data.origin.stages[-1], 1))
-            self.stages_list.addItem(qlwt)
-            self.remaining_gain_text.setText("{:.2g} dB".format(20*np.log10(self.selected_dataset_data.origin.remainingGain)))
-            self.stage_gain_box.setValue(20*np.log10(self.selected_dataset_data.origin.remainingGain))
-            self.total_filtdrloss_label.setText("{:.2g} dB".format(self.selected_dataset_data.origin.getStagesDynamicRangeLoss()))
-            self.stages_list.setCurrentRow(self.stages_list.count() - 1)
-            
-            # self.updateStagePlots() # stages_list changes, so theres no need to do this
-        else:
-            print('Error al crear STAGE')
+        pass
 
     def swapStagesUpwards(self):
-        index = self.stages_list.currentRow()
-        if(not(self.stages_list.count() > 1 and index != 0)):
-            return
-        self.selected_dataset_data.origin.swapStages(index, index - 1)
-        self.stages_list.blockSignals(True)
-        self.stages_list.clear()
-        for stage in self.selected_dataset_data.origin.stages:
-            qlwt = QListWidgetItem()
-            qlwt.setData(Qt.UserRole, Dataset(origin=stage))
-            qlwt.setText(stage_to_str(stage, 1))
-            self.stages_list.addItem(qlwt)
-        self.stages_list.blockSignals(False)
-        self.stages_list.setCurrentRow(index - 1)
+        pass
 
     def swapStagesDownwards(self):
-        index = self.stages_list.currentRow()
-        if(not(self.stages_list.count() > 1 and index != (self.stages_list.count() - 1))):
-            return
-        self.selected_dataset_data.origin.swapStages(index, index + 1)
-        self.stages_list.blockSignals(True)
-        self.stages_list.clear()
-        for stage in self.selected_dataset_data.origin.stages:
-            qlwt = QListWidgetItem()
-            qlwt.setData(Qt.UserRole, Dataset(origin=stage))
-            qlwt.setText(stage_to_str(stage, 1))
-            self.stages_list.addItem(qlwt)
-        self.stages_list.blockSignals(False)
-        self.stages_list.setCurrentRow(index + 1)
+        pass
 
     def orderStagesBySos(self):
-        self.selected_dataset_data.origin.orderStagesBySos()
-        self.stages_list.blockSignals(True)
-        self.stages_list.clear()
-        for stage in self.selected_dataset_data.origin.stages:
-            qlwt = QListWidgetItem()
-            qlwt.setData(Qt.UserRole, Dataset(origin=stage))
-            qlwt.setText(stage_to_str(stage, 1))
-            self.stages_list.addItem(qlwt)
-        self.stages_list.blockSignals(False)
-        self.updateFilterStages()
+        pass
 
     def removeFilterStage(self):
-        i = self.stages_list.currentRow()
-        if i < 0:
-            return
-        
-        self.selected_dataset_data.origin.removeStage(i)
-        self.stages_list.blockSignals(True)
-        self.stages_list.takeItem(i)
-        self.stages_list.setCurrentRow(self.stages_list.count() - 1)
-        self.stages_list.blockSignals(False)
-        self.updateFilterStages()
+        pass
 
     def formatPoleAnnotation(self, sel):
-        forw = 'f' if self.use_hz else 'ω'
-        sel.annotation.set_text('Pole {:d}\n{}={:.2f}\n{:.2f}+j{:.2f}\nQ={:.2f}'.format(sel.index, forw, np.sqrt(sel.target[0]**2 + sel.target[1]**2), sel.target[0], sel.target[1], self.calcQ(sel.target)))
+        pass
+
     def formatPoleAnnotationW(self, sel):
-        forw = 'ω'
-        sel.annotation.set_text('Pole {:d}\n{}={:.2f}\n{:.2f}+j{:.2f}\nQ={:.2f}'.format(sel.index, forw, np.sqrt(sel.target[0]**2 + sel.target[1]**2), sel.target[0], sel.target[1], self.calcQ(sel.target)))
+        pass
 
     def formatZeroAnnotation(self, sel):
-        # if(True or sel.target[0] == 0 and sel.target[1] == 0):
-        sel.annotation.set_text('Zero {:d}\n{:.2f}j'.format(sel.index, sel.target[1]))
-        # else:
-        #     sel.annotation.set_text('Zero {:d}\n{:.2f}+j{:.2f}\nQ={:.2f}'.format(sel.index, sel.target[0], sel.target[1], self.calcQ(sel.target)))
+        pass
 
     def calcQ(self, singRe, singIm):
         return self.calcQ(singRe + singIm*1j)
@@ -1222,153 +446,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             return np.abs(sing)/(- 2 * sing.real)
 
     def updateStagePlots(self):
-        if(not isinstance(self.selected_dataset_data, Dataset)): return
-    
-        if(self.totalStagesZeroCursor):
-            for sel in self.totalStagesZeroCursor.selections:
-                self.totalStagesZeroCursor.remove_selection(sel)
-
-        if(self.totalStagesPoleCursor):
-            for sel in self.totalStagesPoleCursor.selections:
-                self.totalStagesPoleCursor.remove_selection(sel)
-
-        if(self.stageLonePoleCursor):
-            for sel in self.stageLonePoleCursor.selections:
-                self.stageLonePoleCursor.remove_selection(sel)
-
-        if(self.stageLoneZeroCursor):
-            for sel in self.stageLoneZeroCursor.selections:
-                self.stageLoneZeroCursor.remove_selection(sel)
-
-        self.redrawStagePlots = False
-        smagcanvas = self.splot_sgain.canvas
-        sphasecanvas = self.splot_sphase.canvas
-        tgaincanvas = self.splot_tgain.canvas
-        tphasecanvas = self.splot_tphase.canvas
-        sstamagcanvas = self.splot_stagesmag.canvas
-        simpcanvas = self.splot_simp.canvas
-        sstepcanvas = self.splot_sstep.canvas
-
-        self.condition_canvas(self.splot_pz.canvas, '$\sigma$ ($rad/s$)', '$j\omega$ ($rad/s$)')
-        self.condition_canvas(self.splot_fpz.canvas, '$\sigma$ ($rad/s$)', '$j\omega$ ($rad/s$)')
-        self.condition_canvas(self.splot_tpz.canvas, '$\sigma$ ($rad/s$)', '$j\omega$ ($rad/s$)')
-        self.condition_canvas(smagcanvas, 'Frecuencia angular ($rad/s$)', 'Magnitud [dB]', 'log')
-        self.condition_canvas(sphasecanvas, 'Frecuencia angular ($rad/s$)', 'Fase [$^o$]', 'log')
-        self.condition_canvas(tgaincanvas, 'Frecuencia angular ($rad/s$)', 'Magnitud [dB]', 'log')
-        self.condition_canvas(tphasecanvas, 'Frecuencia angular ($rad/s$)', 'Fase [$^o$]', 'log')
-        self.condition_canvas(sstamagcanvas, 'Frecuencia angular ($rad/s$)', 'Magnitud [dB]', 'log')
-        self.condition_canvas(simpcanvas, 'Tiempo [s]', 'Respuesta [V]')
-        self.condition_canvas(sstepcanvas, 'Tiempo [s]', 'Respuesta [V]')
-        sphasecanvas.ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[4.5, 9]))
-        tphasecanvas.ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[4.5, 9]))
-
-        zf, pf = self.selected_dataset_data.origin.tf.getZP(False)
-        mint, maxt = self.getRelevantFrequencies(zf, pf)
-
-        self.splot_fpz.canvas.ax.axis('equal')
-        self.splot_fpz.canvas.ax.axhline(0, color="black", alpha=0.1)
-        self.splot_fpz.canvas.ax.axvline(0, color="black", alpha=0.1)
-        self.splot_fpz.canvas.ax.set_xlim(left=-maxt*PZ_LIM_SCALING, right=maxt*PZ_LIM_SCALING)
-        self.splot_fpz.canvas.ax.set_ylim(bottom=-maxt*PZ_LIM_SCALING, top=maxt*PZ_LIM_SCALING)
-
-        polcol = []
-        zercol = []
-        rps = np.array(self.selected_dataset_data.origin.remainingPoles)
-        rzs = np.array(self.selected_dataset_data.origin.remainingZeros)
-        for fp in pf:
-            found = False
-            for rp in rps:
-                if(np.isclose(fp, rp)):
-                    found = True
-                    break
-            polcol.append(POLE_COLOR if found else POLE_SEL_COLOR)
-        for fz in zf:
-            found = False
-            for rz in rzs:
-                if(np.isclose(fz, rz)): 
-                    found = True
-            zercol.append(ZERO_COLOR if found else ZERO_SEL_COLOR)
-
-
-        # polcol = [POLE_COLOR if pole in np.array(self.selected_dataset_data.origin.remainingPoles)*self.SING_B_TO_F else POLE_SEL_COLOR for pole in pf]
-        # zercol = [ZERO_COLOR if zero in np.array(self.selected_dataset_data.origin.remainingZeros)*self.SING_B_TO_F else ZERO_SEL_COLOR for zero in zf]
-        zeroes_f = self.splot_fpz.canvas.ax.scatter(zf.real, zf.imag, c=zercol, marker='o')
-        poles_f = self.splot_fpz.canvas.ax.scatter(pf.real, pf.imag, c=polcol, marker='x')
-        self.stageCursorZer = cursor(zeroes_f, multiple=True, highlight=True)
-        self.stageCursorZer.connect("add", self.formatZeroAnnotation)
-        self.stageCursorZer.connect("add", self.updateSelectedZerosFromPlot)
-        self.stageCursorZer.connect("remove", self.updateSelectedZerosFromPlot)
-        self.stageCursorPol = cursor(poles_f, multiple=True, highlight=True)
-        self.stageCursorPol.connect("add", self.formatPoleAnnotationW)
-        self.stageCursorPol.connect("add", self.updateSelectedPolesFromPlot)
-        self.stageCursorPol.connect("remove", self.updateSelectedPolesFromPlot)
-
-        accumulated_ds = Dataset(origin=self.selected_dataset_data.origin.implemented_tf)
-
-        w = accumulated_ds.data[0]['f'] * 2 * np.pi
-        g = 20 * np.log10(np.abs(np.array(accumulated_ds.data[0]['g'])))
-        ph = accumulated_ds.data[0]['ph']
-        tgaincanvas.ax.plot(w, g)
-        sstamagcanvas.ax.plot(w, g, label="Total")
-        tphasecanvas.ax.plot(w, ph)
-        
-        self.splot_tpz.canvas.ax.axis('equal')
-        self.splot_tpz.canvas.ax.axhline(0, color="black", alpha=0.1)
-        self.splot_tpz.canvas.ax.axvline(0, color="black", alpha=0.1)
-        self.splot_tpz.canvas.ax.set_xlim(left=-maxt*PZ_LIM_SCALING, right=maxt*PZ_LIM_SCALING)
-        self.splot_tpz.canvas.ax.set_ylim(bottom=-maxt*PZ_LIM_SCALING, top=maxt*PZ_LIM_SCALING)
-        zt, pt = self.selected_dataset_data.origin.implemented_tf.getZP(False)
-        
-        zeroes_t = self.splot_tpz.canvas.ax.scatter(zt.real, zt.imag, c='#0000FF', marker='o')
-        poles_t = self.splot_tpz.canvas.ax.scatter(pt.real, pt.imag, c='#FF0000', marker='x')
-        self.totalStagesZeroCursor = cursor(zeroes_t, multiple=True, highlight=True)
-        self.totalStagesZeroCursor.connect("add", self.formatZeroAnnotation)
-        self.totalStagesPoleCursor = cursor(poles_t, multiple=True, highlight=True)
-        self.totalStagesPoleCursor.connect("add", self.formatPoleAnnotationW)
-
-        for i, stage in enumerate(self.selected_dataset_data.origin.stages):
-            sw,sg, sph = stage.getBodeMagFast(start=np.log10(w[0]), stop=np.log10(w[-1]), num=5000, db=True, use_hz=False)
-            sstamagcanvas.ax.plot(sw, sg, label="Etapa " + str(i), alpha=0.8)
-        sstamagcanvas.ax.legend()
-
-        if(self.stages_list.currentItem()):
-            accumulated_ds = self.stages_list.currentItem().data(Qt.UserRole)
-
-            w = accumulated_ds.data[0]['f'] * 2 * np.pi
-            g = 20 * np.log10(np.abs(np.array(accumulated_ds.data[0]['g'])))
-            ph = accumulated_ds.data[0]['ph']
-            z, p = accumulated_ds.origin.getZP(False)
-
-            smagcanvas.ax.plot(w, g)
-            sphasecanvas.ax.plot(w, ph)
-      
-            tstep, stepres = signal.step(accumulated_ds.origin.tf_object, N=5000)
-            timp, impres = signal.impulse(accumulated_ds.origin.tf_object, N=5000)
-            simpcanvas.ax.plot(timp, impres)
-            sstepcanvas.ax.plot(tstep, stepres)
-
-            (min, max) = self.getRelevantFrequencies(z, p)
-            self.splot_pz.canvas.ax.axis('equal')
-            self.splot_pz.canvas.ax.axhline(0, color="black", alpha=0.1)
-            self.splot_pz.canvas.ax.axvline(0, color="black", alpha=0.1)
-            self.splot_pz.canvas.ax.set_xlim(left=-max*PZ_LIM_SCALING, right=max*PZ_LIM_SCALING)
-            self.splot_pz.canvas.ax.set_ylim(bottom=-max*PZ_LIM_SCALING, top=max*PZ_LIM_SCALING)
-
-            zeroes_f = self.splot_pz.canvas.ax.scatter(z.real, z.imag, marker='o')
-            poles_f = self.splot_pz.canvas.ax.scatter(p.real, p.imag, marker='x')
-
-            self.stageLoneZeroCursor = cursor(zeroes_f)
-            self.stageLoneZeroCursor.connect("add", self.formatZeroAnnotation)
-            self.stageLonePoleCursor = cursor(poles_f)
-            self.stageLonePoleCursor.connect("add", self.formatPoleAnnotation)
-            self.si_info.setText(accumulated_ds.origin.getSOFilterType()[1])
-        #     self.updatePossibleImplementations()
-        # self.splot_pz.canvas.draw_idle()
-        # smagcanvas.draw_idle()
-        # sphasecanvas.draw_idle()
-        self.redrawStagePlotsArr = [True] * len(self.stagePlots)
-        self.redrawStagePlotsArr[self.tabWidget_3.currentIndex()] = False
-        self.stagePlots[self.tabWidget_3.currentIndex()].canvas.draw_idle()
+        pass
 
     def clearCanvas(self, canvas):
         canvas.ax.clear()
@@ -1640,24 +718,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ds_remove_btn.setEnabled(enabled)
 
     def setDatalineControlsStatus(self, enabled=True):
-        self.dl_name_edit.setEnabled(enabled)
-        self.dl_render_cb.setEnabled(enabled)
-        self.dl_transform_cb.setEnabled(enabled)
-        self.dl_xdata_cb.setEnabled(enabled)
-        self.dl_xscale_sb.setEnabled(enabled)
-        self.dl_xoffset_sb.setEnabled(enabled)
-        self.dl_ydata_cb.setEnabled(enabled)
-        self.dl_yscale_sb.setEnabled(enabled)
-        self.dl_yoffset_sb.setEnabled(enabled)
-        self.dl_color_edit.setEnabled(enabled)
-        self.dl_color_pickerbtn.setEnabled(enabled)
-        self.dl_style_cb.setEnabled(enabled)
-        self.dl_linewidth_sb.setEnabled(enabled)
-        self.dl_marker_cb.setEnabled(enabled)
-        self.dl_markersize_sb.setEnabled(enabled)
-        self.dl_savgol_wlen.setEnabled(enabled)
-        self.dl_savgol_ord.setEnabled(enabled)
-        self.dl_remove_btn.setEnabled(enabled)
+        self.dataline_gb.setEnabled(enabled)
 
     def getPlotFromIndex(self, plotnum):
         x = plotnum

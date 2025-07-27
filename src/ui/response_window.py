@@ -94,31 +94,31 @@ class Ui_ResponseDialog(object):
         ResponseDialog.setWindowTitle(_translate("ResponseDialog", "Dialog"))
         self.check_btn.setText(_translate("ResponseDialog", "Validar"))
         self.resp_name_txt.setPlaceholderText(_translate("ResponseDialog", "Function name"))
-        self.label.setText(_translate("ResponseDialog", "Mínimo"))
-        self.label_2.setText(_translate("ResponseDialog", "Máximo"))
-        self.label_3.setText(_translate("ResponseDialog", "Intervalo"))
+        self.label.setText(_translate("ResponseDialog", "Initial time"))
+        self.label_2.setText(_translate("ResponseDialog", "Final time"))
+        self.label_3.setText(_translate("ResponseDialog", "Timestep"))
         self.input_txt.setPlaceholderText(_translate("ResponseDialog", "Function expression"))
         self.textBrowser.setHtml(_translate("ResponseDialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
 "p, li { white-space: pre-wrap; }\n"
 "</style></head><body style=\" font-family:\'MS Shell Dlg 2\'; font-size:8.25pt; font-weight:400; font-style:normal;\">\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">AYUDA:</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">En <span style=\" font-style:italic;\">function expression</span> se pone una expresión con variable temporal <span style=\" font-weight:600;\">t</span>, la cual se pasa por la TF para obtener la respuesta.</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">delta # respuesta al impulso unitario</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">Algunas funciones disponibles son:</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">step # respuesta al escalón</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">delta <span style=\" font-style:italic;\"># respuesta al impulso unitario</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">np.heaviside(t0, a) # escalón unitario centrado en t=t0 y con valor 0&lt;a&lt;1 en t0</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">step <span style=\" font-style:italic;\"># respuesta al escalón unitario</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">np.sin(t) # seno</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">np.heaviside(t0, a) <span style=\" font-style:italic;\"># escalón unitario centrado en t=t0 y con valor 0&lt;a&lt;1 en t0</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">np.cos(t) # coseno</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">np.sin(t), np.cos(t)</p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">np.exp(t) # exponencial</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">np.exp(t) <span style=\" font-style:italic;\"># exponencial</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">signal.sawtooth(t, w) # diente de sierra con -1&lt;=w&lt;=1 (w=0.5 para triangular)</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">signal.sawtooth(t, w)<span style=\" font-style:italic;\"> # diente de sierra con -1&lt;=w&lt;=1 (w=0.5 para triangular)</span></p>\n"
 "<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
-"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">signal.square(t, D) # señal cuadrada con ciclo de trabajo 0&lt;D&lt;1</p></body></html>"))
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">signal.square(t, D) <span style=\" font-style:italic;\"># señal cuadrada con ciclo de trabajo 0&lt;D&lt;1</span></p></body></html>"))
 
 
 if __name__ == "__main__":

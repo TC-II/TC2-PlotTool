@@ -140,24 +140,24 @@ class Dataset:
             csv_reader = csv.DictReader(csv_file)
 
             for row in csv_reader:
+                print(row.items())
                 for (field, val) in row.items():
                     try:
                         if('i' in val or 'j' in val):
                             self.data[0][field].append(np.complex128(val))
                         elif(val != ''):
                             self.data[0][field].append(float(val))
-                        else:
-                            maxlen = len(self.data[0][field])
-                            for (field2, val2) in row.items():
-                                self.data[0][field2] = self.data[0][field2][:maxlen]
-                            break
+                        # else:
+                        #     maxlen = len(self.data[0][field])
+                        #     for (field2, val2) in row.items():
+                        #         self.data[0][field2] = self.data[0][field2][:maxlen]
+                        #     break
                     except(ValueError):
                         pass
                     except(TypeError):
                         pass
                     except(KeyError):
                         pass
-                    
             if('rigol' in filepath.lower()):
                 self.miscinfo += ('- taken from Rigol DSO')
                 self.suggestedXscale = float(self.data[0]['Increment'][0])
