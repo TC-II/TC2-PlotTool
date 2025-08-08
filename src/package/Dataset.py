@@ -135,7 +135,7 @@ class Dataset:
             csv_reader = csv.DictReader(csv_file)
 
             for row in csv_reader:
-                print(row.items())
+                #print(row.items())
                 for (field, val) in row.items():
                     try:
                         if('i' in val or 'j' in val):
