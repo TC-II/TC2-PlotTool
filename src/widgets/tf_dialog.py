@@ -13,40 +13,44 @@ class TFDialog(QtWidgets.QDialog, Ui_tf_window):
         self.tf = TFunction()
 
         self.tf_title.textChanged.connect(self.enableTFFunction)
-        self.tf_raw.textChanged.connect(self.drawExpression)
-        self.check_btn.clicked.connect(self.processTFValues)
+        self.tf_raw.textChanged.connect(self.exprUpdated)
+        self.button_ok = self.OK_btn.button(QtWidgets.QDialogButtonBox.Ok)
+        self.button_ok.setEnabled(False)
+        #self.check_btn.clicked.connect(self.processTFValues)
 
     def getTFTitle(self):
         return self.tf_title.text()
-
-    def getTFExpression(self):
-        return self.tf_raw.text()
 
     def enableTFFunction(self, txt):
         if txt != '':
             self.tf_raw.setEnabled(True)
 
+    def exprUpdated(self, txt):
+        self.drawExpression(txt.lower())
+        err_txt = self.tf.setExpression(self.tf_raw.text().lower())
+        self.error_label.setText(str(err_txt))
+        self.button_ok.setEnabled(err_txt == '')
+
     def drawExpression(self, txt):
+        txt = txt.lower()
         try:
             canvas = self.expr_plot.canvas
             canvas.ax.clear()
             canvas.ax.set_axis_off()
             canvas.ax.text(0.5,
-                           0.5,
-                           f"${self.tf.getLatex(txt)}$",
-                           horizontalalignment='center',
-                           verticalalignment='center',
-                           fontsize=20,
-                           transform=canvas.ax.transAxes)
+                            0.5,
+                            f"${self.tf.getLatex(txt)}$",
+                            horizontalalignment='center',
+                            verticalalignment='center',
+                            fontsize=20,
+                            transform=canvas.ax.transAxes)
             canvas.draw()
-        except:
+        except Exception as e:
             pass
 
     def validateTF(self):
-        return self.tf.setExpression(self.tf_raw.text())
-
-    def processTFValues(self):
-        if  self.validateTF():
-            self.error_label.clear()
+        err_txt = self.tf.setExpression(self.tf_raw.text().lower())
+        if('EOF in multi-line statement' in err_txt):
+            return 'Mismatched parentheses'
         else:
-            self.error_label.setText("Revise function expression")
+            return err_txt

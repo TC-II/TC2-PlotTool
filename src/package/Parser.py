@@ -1,7 +1,13 @@
 import sympy as sym
 from sympy import Symbol, S, oo
+import re
 
 s = sym.symbols('s')
+
+def safe_sympify(txt):
+    # Insert a '*' between a number and a letter (e.g., "2s" -> "2*s")
+    txt = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', txt)
+    return sym.sympify(txt)
 
 #Puntaje asignado a la complejidad para la simplificación de sympy
 def determinar_complejidad(expr):
@@ -42,18 +48,18 @@ class ExprParser():
       self.simplify()
 
     def getND(self):
-      N = sym.Poly(self.fractionEx[0]).all_coeffs() if (s in self.fractionEx[0].free_symbols) else [self.fractionEx[0].evalf()]
-      D = sym.Poly(self.fractionEx[1]).all_coeffs() if (s in self.fractionEx[1].free_symbols) else [self.fractionEx[1].evalf()]
+      N = sym.Poly(self.fractionEx[0].evalf()).all_coeffs() if (s in self.fractionEx[0].free_symbols) else [self.fractionEx[0].evalf()]
+      D = sym.Poly(self.fractionEx[1].evalf()).all_coeffs() if (s in self.fractionEx[1].free_symbols) else [self.fractionEx[1].evalf()]
       return N, D
 
     def getLatex(self, txt=None):
       if not txt:
-        return sym.latex(sym.sympify(self.txt))
+        return sym.latex(safe_sympify(self.txt))
       else:
-        return sym.latex(sym.sympify(txt))
+        return sym.latex(safe_sympify(txt))
       
     def getSympyfied(self, txt=None):
       if not txt:
-        return sym.sympify(self.txt)
+        return safe_sympify(self.txt)
       else:
-        return sym.sympify(txt)
+        return safe_sympify(txt)

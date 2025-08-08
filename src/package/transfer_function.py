@@ -44,9 +44,9 @@ class TFunction():
             self.eparser.setTxt(txt)
             N, D = self.eparser.getND()
             self.setND(N, D, normalize=normalize)
-            return True
-        except:
-            return False
+            return ''
+        except Exception as e:
+            return e
 
     def setND(self, N, D, normalize=False):
         if not hasattr(N, '__iter__'):

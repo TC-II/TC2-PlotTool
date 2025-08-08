@@ -6,26 +6,19 @@ from PyQt5.QtCore import Qt, QCoreApplication
 # Project modules
 from src.ui.mainwindow import Ui_MainWindow
 from src.package.Dataset import Dataset
-import src.package.Filter as Filter
-import src.package.CellCalculator as CellCalculator
-import src.package.transfer_function as TF
-from src.package.Filter import AnalogFilter, NORM_CB_DC, NORM_CB_HF, NORM_CB_BP, NORM_CB_PB
-from src.widgets.fleischer_tow_window import FleischerTowDialog
 from src.widgets.tf_dialog import TFDialog
 from src.widgets.case_window import CaseDialog
 from src.widgets.zp_window import ZPWindow
 from src.widgets.response_dialog import ResponseDialog
 from src.widgets.prompt_dialog import PromptDialog
-
+from copy import copy, deepcopy
+import re
 from scipy.signal import savgol_filter
 import scipy.signal as signal
 import matplotlib.ticker as ticker
-from matplotlib.pyplot import Circle
-from mplcursors import  cursor, Selection
-
+import copy
 import numpy as np
 import random
-from pyparsing.exceptions import ParseSyntaxException
 
 import pickle
 
@@ -130,6 +123,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ds_caseadd_btn.clicked.connect(self.openCaseDialog)
         self.csd.accepted.connect(self.resolveCSDialog)
 
+        self.ds_caseadd_btn.setVisible(False)
+        self.ds_casenum_lb.setVisible(False)
+        self.ds_cases_lb.setVisible(False)
+        self.ds_info_lb.setVisible(False)
+        self.ds_info_tag.setVisible(False)
+
         self.pmptd = PromptDialog()
         
         self.plt_labelsize_sb.valueChanged.connect(self.updatePlots)
@@ -150,18 +149,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         ]
         self.dataline_gb.setEnabled(False)
 
-    def updateFilterLegends(self):
-        pass
-
-    def updateComparisonAproxOptions(self, index):
-        pass
-
-    def selectUseCanonical(self):
-        pass
-
-    def selectUseRandom(self):
-        pass
-
     def selectUseHz(self):
         if(self.actionUse_Hz.isChecked()):
             self.actionUse_rad_s.setChecked(False)
@@ -178,15 +165,14 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.actionUse_Hz.setChecked(True)
             self.selectUseHz()
 
-    def updateFequencySettings(self, useHz):
-        pass
 
     def addDataset(self, ds):
         qlwt = QListWidgetItem()
         qlwt.setData(Qt.UserRole, ds)
         qlwt.setText(ds.title)
         self.dataset_list.addItem(qlwt)
-        self.datasets.append(ds)
+        ds_cpy = copy.deepcopy(ds)
+        self.datasets.append(ds_cpy)
         self.datalines.append([])
         self.dataset_list.setCurrentRow(self.dataset_list.count() - 1)
 
@@ -208,17 +194,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.datalines.pop(i)
 
         ds = self.dataset_list.item(i).data(Qt.UserRole)
-        if(ds.type == 'filter'):
-            fi = self.filters.index(ds)
-            self.filters.pop(fi)
-            self.selfil_cb.removeItem(fi)
-            self.stages_selfil_cb.removeItem(fi)
-            if(self.selfil_cb.count() == 0):
-                self.chg_filter_btn.setEnabled(False)
-                self.fgetHhuman_btn.setEnabled(False)
-                self.fgetHlatex_btn.setEnabled(False)
-                self.sgetHhuman_btn.setEnabled(False)
-                self.sgetHlatex_btn.setEnabled(False)
         self.dataset_list.takeItem(i)
         self.updatePlots()
 
@@ -310,9 +285,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.tfd.tf_title.setFocus()
 
     def resolveTFDialog(self):
-        if not self.tfd.validateTF():
+        if self.tfd.validateTF() != '':
             return
-        ds = Dataset(filepath='', origin=self.tfd.tf, title=self.tfd.getTFTitle())
+        ds = Dataset(filepath='', origin=copy.deepcopy(self.tfd.tf), title=self.tfd.getTFTitle())
         self.addDataset(ds)
 
     def openResponseDialog(self):
@@ -326,45 +301,36 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         t = self.respd.getTimeDomain()
         expression = self.respd.getResponseExpression()
         title = self.respd.getResponseTitle()
-        time_title = title + "_timebase"
+        time_title = title + "_time"
+        input_title = title + "_inp"
         ans_title = title + "_ans"
         
-        if expression == 'step':
-            x = np.heaviside(t, 0.5)
-            _, response = signal.step(self.selected_dataset_data.tf.tf_object, T=t)
-        elif expression == 'delta':
-            delta = lambda t, eps: (1 / (np.sqrt(np.pi) *eps)) * np.exp(-(t/eps)**2) #para plotear la delta
-            x = delta(t, (t[1] - t[0]))
-            _, response = signal.impulse(self.selected_dataset_data.tf.tf_object, T=t)
-        else:
-            x = eval(expression)
-            response = signal.lsim(self.selected_dataset_data.tf.tf_object , U = x , T = t)[1]
+        # if expression == 'step':
+        #     x = np.heaviside(t, 0.5)
+        #     _, response = signal.step(self.selected_dataset_data.tf.tf_object, T=t)
+        # elif expression == 'delta':
+        #     delta = lambda t, eps: (1 / (np.sqrt(np.pi) *eps)) * np.exp(-(t/eps)**2) #para plotear la delta
+        #     x = delta(t, (t[1] - t[0]))
+        #     _, response = signal.impulse(self.selected_dataset_data.tf.tf_object, T=t)
+        # else:
+        
+        # reemplaza "pi" por "np.pi" evitando que ocurra "np.np.pi"
+        expression_piprocessed = re.sub(r'(?<!np\.)\bpi\b', 'np.pi', expression)
+
+        x = eval(expression_piprocessed)
+        response = signal.lsim(self.selected_dataset_data.tf.tf_object , U = x , T = t)[1]
         
         self.selected_dataset_data.data[0][time_title] = t
-        self.selected_dataset_data.data[0][title] = x
+        self.selected_dataset_data.data[0][input_title] = x
         self.selected_dataset_data.data[0][ans_title] = response
 
         self.selected_dataset_data.fields.append(time_title)
-        self.selected_dataset_data.fields.append(title)
+        self.selected_dataset_data.fields.append(input_title)
         self.selected_dataset_data.fields.append(ans_title)
         
         self.populateSelectedDatasetDetails(self.selected_dataset_widget, None)
         self.updateSelectedDataline()
 
-    def buildFilterFromParams(self):
-        pass
-    
-    def addFilter(self):
-        pass
-    
-    def makeFilterTemplateSymmetric(self):
-        pass
-
-    def changeSelectedFilter(self):
-        pass
-
-    def updateFilterParametersAvailable(self):
-        pass
 
     def condition_canvas(self, canvas, xlabel, ylabel, xscale='linear', yscale='linear', grid=True):
         canvas.ax.clear()
@@ -377,60 +343,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         canvas.ax.yaxis.label.set_size(self.plt_labelsize_sb.value())
         for label in (canvas.ax.get_xticklabels() + canvas.ax.get_yticklabels()):
             label.set_fontsize(self.plt_ticksize_sb.value())
-
-    def updateFilterPlots(self):
-        pass
-    
-    def redrawFilterPlots(self, index):
-        if(self.redrawFilterPlotsArr[index]):
-            self.redrawFilterPlotsArr[index] = False
-            self.filterPlots[index].canvas.draw_idle()
-    def redrawStagePlots(self, index):
-        if(self.redrawStagePlotsArr[index]):
-            self.redrawStagePlotsArr[index] = False
-            self.stagePlots[index].canvas.draw_idle()
-        
-
-    def updateFilterStages(self):
-        pass
-
-    def stage_sel_changed(self):
-        pass
-
-    def updateNormalizationCb(self, z, p):
-        pass
-
-
-    def updateSelectedPolesFromPlot(self, s):
-        pass
-
-    def updateSelectedZerosFromPlot(self, s):
-        pass
-
-
-    def addFilterStage(self):
-        pass
-
-    def swapStagesUpwards(self):
-        pass
-
-    def swapStagesDownwards(self):
-        pass
-
-    def orderStagesBySos(self):
-        pass
-
-    def removeFilterStage(self):
-        pass
-
-    def formatPoleAnnotation(self, sel):
-        pass
-
-    def formatPoleAnnotationW(self, sel):
-        pass
-
-    def formatZeroAnnotation(self, sel):
-        pass
 
     def calcQ(self, singRe, singIm):
         return self.calcQ(singRe + singIm*1j)
@@ -518,110 +430,23 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.selected_dataset_widget = listitemwidget
         self.selected_dataset_data = listitemwidget.data(Qt.UserRole)
         isTF = self.selected_dataset_data.type in ['TF', 'filter']
+        self.ds_poleszeros_btn.setVisible(isTF)
         self.ds_poleszeros_btn.setEnabled(isTF)
-        self.resp_btn.setEnabled(isTF)
+        if(isTF):
+            self.resp_btn.setVisible(len(self.selected_dataset_data.tf.D) >= len(self.selected_dataset_data.tf.N))
+            self.resp_btn.setEnabled(len(self.selected_dataset_data.tf.D) >= len(self.selected_dataset_data.tf.N))
         self.ds_casenum_lb.setText(str(len(self.selected_dataset_data.data)))
         self.ds_caseadd_btn.setVisible(len(self.selected_dataset_data.data) > 1)
+        self.ds_casenum_lb.setVisible(len(self.selected_dataset_data.data) > 1)
+        self.ds_cases_lb.setVisible(len(self.selected_dataset_data.data) > 1)
         self.ds_info_lb.setText(self.selected_dataset_data.miscinfo)
 
-        #relleno las cajas del filtro
-        if(self.selected_dataset_data.type == 'filter'):
-            self.populateSelectedFilterDetails()
 
     
-    def populateSelectedFilterDetails(self, index=-2):
-        if(index == -2):
-            for i, fds in enumerate(self.filters):
-                if(fds.origin == self.selected_dataset_data.origin):
-                    self.selfil_cb.blockSignals(True)
-                    self.stages_selfil_cb.blockSignals(True)
-                    self.selfil_cb.setCurrentIndex(i)
-                    self.stages_selfil_cb.setCurrentIndex(i)
-                    self.selfil_cb.blockSignals(False)
-                    self.stages_selfil_cb.blockSignals(False)
-                    break
-        elif(index != -1):
-            if(index == self.selfil_cb.currentIndex()):
-                filtds = self.selfil_cb.currentData()
-                self.stages_selfil_cb.blockSignals(True)
-                self.stages_selfil_cb.setCurrentIndex(index)
-                self.stages_selfil_cb.blockSignals(False)
-            else:
-                filtds = self.stages_selfil_cb.currentData()
-                self.selfil_cb.blockSignals(True)
-                self.selfil_cb.setCurrentIndex(index)
-                self.selfil_cb.blockSignals(False)
-            if(self.selected_dataset_data.origin != filtds.origin):
-                for x in range(self.dataset_list.count()):
-                    item = self.dataset_list.item(x)
-                    ds = item.data(Qt.UserRole)
-                    if(ds.origin == filtds.origin):
-                        self.dataset_list.setCurrentRow(x)
-                        self.populateSelectedDatasetDetails(item, None)
-                        return
-        else:
-            return
-        self.filtername_box.setText(self.selected_dataset_data.title)
-        self.tipo_box.setCurrentIndex(self.selected_dataset_data.origin.filter_type)
-        self.aprox_box.setCurrentIndex(self.selected_dataset_data.origin.approx_type)
-        self.compareapprox_cb.setCurrentIndexes(self.selected_dataset_data.origin.helper_approx)
-        self.comp_N_box.setValue(self.selected_dataset_data.origin.helper_N)
-        self.gain_box.setValue(20*np.log10(self.selected_dataset_data.origin.gain))
-        self.aa_box.setValue(self.selected_dataset_data.origin.aa_dB)
-        self.ap_box.setValue(self.selected_dataset_data.origin.ap_dB)
-        self.N_label.setText(str(self.selected_dataset_data.origin.N))
-        self.N_min_box.setValue(self.selected_dataset_data.origin.N_min)
-        self.N_max_box.setValue(self.selected_dataset_data.origin.N_max)
-        Qs = [self.calcQ(p) for p in self.selected_dataset_data.origin.tf.getZP()[1]]
-        if(len(Qs) > 0):
-            self.max_Q_label.setText("{:.2f}".format(max(Qs)))
-        self.drloss_label.setText("{:.2f} dB".format(self.selected_dataset_data.origin.getDynamicRangeLoss()))
-        self.define_with_box.setCurrentIndex(self.selected_dataset_data.origin.define_with)
-        if self.selected_dataset_data.origin.filter_type in [Filter.BAND_PASS, Filter.BAND_REJECT]:
-            self.fp_box.setValue(0)
-            self.fa_box.setValue(0)
-            fa = []
-            fp = []
-            if(self.selected_dataset_data.origin.filter_type == Filter.BAND_PASS):
-                fp = [w * self.SING_B_TO_F for w in self.selected_dataset_data.origin.wp]
-                fa = [w * self.SING_B_TO_F for w in self.selected_dataset_data.origin.reqwa]
-            else:
-                fp = [w * self.SING_B_TO_F for w in self.selected_dataset_data.origin.reqwp]
-                fa = [w * self.SING_B_TO_F for w in self.selected_dataset_data.origin.wa]
-            self.fa_min_box.setValue(fa[0])
-            self.fa_max_box.setValue(fa[1])
-            self.fp_min_box.setValue(fp[0])
-            self.fp_max_box.setValue(fp[1])
-            self.bw_max_box.setValue(self.selected_dataset_data.origin.bw[1] * self.SING_B_TO_F)
-            self.bw_min_box.setValue(self.selected_dataset_data.origin.bw[0] * self.SING_B_TO_F)
-            self.f0_box.setValue(self.selected_dataset_data.origin.w0 * self.SING_B_TO_F)
-        elif self.selected_dataset_data.origin.filter_type in [Filter.LOW_PASS, Filter.HIGH_PASS]:
-            self.fp_box.setValue(self.selected_dataset_data.origin.wp * self.SING_B_TO_F)
-            self.fa_box.setValue(self.selected_dataset_data.origin.wa * self.SING_B_TO_F)
-            self.fa_min_box.setValue(0)
-            self.fa_max_box.setValue(0)
-            self.fp_min_box.setValue(0)
-            self.fp_max_box.setValue(0)
-        else:
-            self.fp_box.setValue(0)
-            self.fa_box.setValue(0)
-            self.fa_min_box.setValue(0)
-            self.fa_max_box.setValue(0)
-            self.fp_min_box.setValue(0)
-            self.fp_max_box.setValue(0)
-        self.updateFilterStages()
-        self.updateFilterPlots()
-        self.updateFilterParametersAvailable()
-
     def updateSelectedDatasetName(self):
         new_title = self.ds_title_edit.text()
         self.selected_dataset_widget.setText(new_title)
         self.selected_dataset_data.title = new_title
-        if(self.selected_dataset_data.type == 'filter'):
-            self.selfil_cb.setItemText(self.selfil_cb.currentIndex(), new_title)
-            self.stages_selfil_cb.setItemText(self.stages_selfil_cb.currentIndex(), new_title)
-            self.filtername_box.setText(new_title)
-
     def populateSelectedDatalineDetails(self, listitemwidget, qlistwidget):
         if(not listitemwidget):
             self.setDatalineControlsStatus(False)
@@ -774,13 +599,15 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                             y = 20 * np.log10(y)
                         elif(dl.transform == 5):
                             y = 20 * np.log10(np.abs(y))
-                        elif(dl.transform == 6):
+                        elif(dl.transform == 6 or dl.transform == 7):
                             y = np.unwrap(y, period=360)
                         else:
                             y = np.real(y)
 
                         if(dl.transform in [2,3,6]):
                             canvas.ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[1.8,2.25,4.5,9]))
+                        elif(dl.transform == 7):
+                            canvas.ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins='auto', steps=[4.5,], integer=True))
                         else:
                             canvas.ax.yaxis.set_major_locator(ticker.AutoLocator())
 
@@ -842,9 +669,9 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     
     def saveFile(self, noprompt=False):
         if(noprompt):
-            filename = 'temp.fto'
+            filename = 'temp.pto'
         else:
-            filename, _ = QFileDialog.getSaveFileName(self,"Save File", "","Filter tool file (*.fto)")
+            filename, _ = QFileDialog.getSaveFileName(self,"Save File", "","Plot tool file (*.pto)")
         if(not filename): return
         with open(filename, 'wb') as f:
             flat_plots_canvas = [item.canvas for sublist in self.plots_canvases for item in sublist]
@@ -865,7 +692,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             pickle.dump(d, f, pickle.HIGHEST_PROTOCOL)
 
     def loadFile(self):
-        filename, _ = QFileDialog.getOpenFileName(self,"Select files", "","Filter tool file (*.fto)")
+        filename, _ = QFileDialog.getOpenFileName(self,"Select files", "","Plot tool file (*.pto)")
         if(not filename): return
         with open(filename, 'rb') as f:
             f.seek(0)
@@ -893,14 +720,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                     qlwt.setData(Qt.UserRole, dl)
                     qlwt.setText(dl.name)
                     self.dataline_list.addItem(qlwt)
-                if(ds.type == 'filter'):
-                    self.filters.append(ds)
-                    self.selfil_cb.blockSignals(True)
-                    self.stages_selfil_cb.blockSignals(True)
-                    self.selfil_cb.addItem(ds.title, ds)
-                    self.stages_selfil_cb.addItem(ds.title, ds)
-                    self.selfil_cb.blockSignals(False)
-                    self.stages_selfil_cb.blockSignals(False)
 
             self.dataset_list.setCurrentRow(self.dataset_list.count() - 1)
             self.updateAll()
@@ -908,14 +727,6 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def updateAll(self):
         self.updatePlots()
         self.updateSelectedDataline()
-        self.updateFilterParametersAvailable()
-    
-    def getRelevantFrequencies(self, zeros, poles):
-        singularitiesNorm = np.append(np.abs(zeros), np.abs(poles))
-        singularitiesNormWithoutZeros = [s for s in singularitiesNorm if s != 0]
-        if(len(singularitiesNormWithoutZeros) == 0):
-            return (1, 1)
-        return (np.min(singularitiesNormWithoutZeros), np.max(singularitiesNormWithoutZeros))
     
     def getMultiplierAndPrefix(self, val):
         multiplier = 1
@@ -942,128 +753,3 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             multiplier = 1e9
             prefix = 'G'
         return (multiplier, prefix)
-
-    def updatePossibleImplementations(self):
-        if(not self.stages_list.currentItem()):
-            return
-        stage_tf = self.stages_list.currentItem().data(Qt.UserRole)
-        stagetype, text = stage_tf.origin.getSOFilterType()
-        arr = [False] * CellCalculator.IMPL_COUNT
-
-        if(stagetype in [TF.LP1, TF.HP1]):
-            arr[CellCalculator.PASSIVERC] = True
-            arr[CellCalculator.PASSIVERLC] = False
-            arr[CellCalculator.INTEGDERIV] = True
-            arr[CellCalculator.SALLENKEY] = False
-            arr[CellCalculator.RAUCH] = False
-            arr[CellCalculator.DOUBLET] = False
-            arr[CellCalculator.KHN] = False
-            arr[CellCalculator.SEDRA] = False
-            arr[CellCalculator.ACKERBERG] = False
-            arr[CellCalculator.TOWTHOMAS] = False
-            arr[CellCalculator.FLEISCHERTOW] = False
-        else:
-            arr[CellCalculator.INTEGDERIV] = False
-            arr[CellCalculator.FLEISCHERTOW] = True
-            if(stagetype in [TF.LP2, TF.HP2]):
-                arr[CellCalculator.PASSIVERC] = True
-                arr[CellCalculator.PASSIVERLC] = True
-                arr[CellCalculator.SALLENKEY] = True
-                arr[CellCalculator.RAUCH] = True
-                arr[CellCalculator.DOUBLET] = True
-                arr[CellCalculator.SEDRA] = True
-                arr[CellCalculator.ACKERBERG] = stagetype == TF.LP2
-                arr[CellCalculator.KHN] = True
-                arr[CellCalculator.TOWTHOMAS] = stagetype == TF.LP2
-            elif(stagetype == TF.BP):
-                arr[CellCalculator.PASSIVERC] = stage_tf.gain <= 1 and stage_tf.getPoleQ() <= 1/3 # hay que ver bien el Q!!!
-                arr[CellCalculator.PASSIVERLC] = True
-                arr[CellCalculator.SALLENKEY] = False
-                arr[CellCalculator.RAUCH] = True
-                arr[CellCalculator.DOUBLET] = False
-                arr[CellCalculator.SEDRA] = False
-                arr[CellCalculator.ACKERBERG] = True
-                arr[CellCalculator.KHN] = True
-                arr[CellCalculator.TOWTHOMAS] = True
-            elif(stagetype in [TF.BR, TF.HPN, TF.LPN]):
-                arr[CellCalculator.PASSIVERC] = stage_tf.gain <= 1 and stage_tf.getPoleQ() < 1/3 # hay que ver bien el Q!!!
-                arr[CellCalculator.PASSIVERLC] = True
-                arr[CellCalculator.SALLENKEY] = False
-                arr[CellCalculator.RAUCH] = False
-                arr[CellCalculator.DOUBLET] = False
-                arr[CellCalculator.SEDRA] = False
-                arr[CellCalculator.ACKERBERG] = False
-                arr[CellCalculator.KHN] = False # Por ahora!
-                arr[CellCalculator.TOWTHOMAS] = False
-        for i in range(CellCalculator.IMPL_COUNT):
-            self.si_type_cb.model().item(i).setEnabled(arr[i])
-        # f = accumulated_ds.data[0]['f']
-        # g = accumulated_ds.data[0]['g']
-        # ph = accumulated_ds.data[0]['ph']
-        # z, p = accumulated_ds.origin.getZP(self.use_hz)
-
-        # gline, = smagcanvas.ax.plot(f, g)
-        # phline, = sphasecanvas.ax.plot(f, ph)
-
-        # (min, max) = self.getRelevantFrequencies(z, p)
-        # self.splot_pz.canvas.ax.axis('equal')
-        # self.splot_pz.canvas.ax.axhline(0, color="black", alpha=0.1)
-        # self.splot_pz.canvas.ax.axvline(0, color="black", alpha=0.1)
-        # self.splot_pz.canvas.ax.set_xlim(left=-max*PZ_LIM_SCALING, right=max*PZ_LIM_SCALING)
-        # self.splot_pz.canvas.ax.set_ylim(bottom=-max*PZ_LIM_SCALING, top=max*PZ_LIM_SCALING)
-
-        # zeroes_f = self.splot_pz.canvas.ax.scatter(z.real, z.imag, marker='o')
-        # poles_f = self.splot_pz.canvas.ax.scatter(p.real, p.imag, marker='x')
-
-        # cursor(zeroes_f).connect("add", self.formatZeroAnnotation)
-        # cursor(poles_f).connect("add", self.formatPoleAnnotation)
-
-    def openImplementationDialog(self):
-        sel_impl = self.si_type_cb.currentIndex()
-        stage = self.stages_list.currentItem().data(Qt.UserRole).origin
-        if(not stage): return
-        if(sel_impl == CellCalculator.PASSIVERC):
-            pass
-        elif(sel_impl == CellCalculator.PASSIVERLC):
-            pass
-        elif(sel_impl == CellCalculator.SALLENKEY):
-            pass
-        elif(sel_impl == CellCalculator.RAUCH):
-            pass
-        elif(sel_impl == CellCalculator.DOUBLET):
-            pass
-        elif(sel_impl == CellCalculator.SEDRA):
-            pass
-        elif(sel_impl == CellCalculator.KHN):
-            pass
-        elif(sel_impl == CellCalculator.TOWTHOMAS):
-            pass
-        elif(sel_impl == CellCalculator.ACKERBERG):
-            pass
-        elif(sel_impl == CellCalculator.FLEISCHERTOW):
-            self.ftd.open()
-            self.ftd.populate(stage)
-    
-    def copyFilterHhuman(self):
-        if(self.selected_dataset_data.type == 'filter'):
-            clipboard = QCoreApplication.instance().clipboard()
-            clipboard.setText(self.selected_dataset_data.origin.tf.buildSymbolicText())
-    
-    def copyFilterHlatex(self):
-        if(self.selected_dataset_data.type == 'filter'):
-            clipboard = QCoreApplication.instance().clipboard()
-            s = self.selected_dataset_data.origin.tf.buildSymbolicText()
-            clipboard.setText(self.selected_dataset_data.origin.tf.getLatex(s))
-
-    def copyStageHhuman(self):
-        if(self.stages_list.currentItem()):
-            clipboard = QCoreApplication.instance().clipboard()
-            tf = self.stages_list.currentItem().data(Qt.UserRole).origin
-            clipboard.setText(tf.buildSymbolicText())
-
-    def copyStageHlatex(self):
-        if(self.stages_list.currentItem()):
-            clipboard = QCoreApplication.instance().clipboard()
-            tf = self.stages_list.currentItem().data(Qt.UserRole).origin
-            s = tf.buildSymbolicText()
-            clipboard.setText(tf.getLatex(s))

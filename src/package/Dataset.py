@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 import csv
 from src.package.transfer_function import TFunction
-from src.package.Filter import AnalogFilter
 from collections import defaultdict
 from PyQt5.QtCore import QFileInfo
 from src.package.Dataline import Dataline
 import scipy.signal as signal
+import copy
 class Dataset:
     def __init__(self, filepath='', title='', origin=''):
         qfi = QFileInfo(filepath)
@@ -42,14 +42,9 @@ class Dataset:
             self.type = 'txt'
             self.parse_from_txt(filepath)
         elif(filepath == ''):
-            if isinstance(self.origin, AnalogFilter):
-                self.tf = self.origin.tf
-                self.type = 'filter'
-                self.parse_from_filter()
-            else:
-                self.tf = self.origin
-                self.type = 'TF'
-                self.parse_from_expression()
+            self.tf = self.origin
+            self.type = 'TF'
+            self.parse_from_expression()
         else:
             raise ValueError
         
@@ -179,8 +174,6 @@ class Dataset:
 
     def parse_from_expression(self):
         f, g, ph, gd = self.tf.getBode()
-        tstep, stepr = signal.step(self.tf.tf_object, N=5000)
-        timp, impr = signal.impulse(self.tf.tf_object, N=5000)
         z, p = self.tf.getZP()
         self.data = [{}]
         self.zeros = [{}]
@@ -189,14 +182,17 @@ class Dataset:
         self.data[0]['g'] = g
         self.data[0]['ph'] = ph
         self.data[0]['gd'] = gd
-        self.data[0]['tstep'] = tstep
-        self.data[0]['stepr'] = stepr
-        self.data[0]['timp'] = timp
-        self.data[0]['impr'] = impr
         self.zeros[0] = z
         self.poles[0] = p
         self.suggestedXsource = 'f'
         self.suggestedYsource = 'g'
+        if(len(self.tf.D) >= len(self.tf.N)):
+            tstep, stepr = signal.step(self.tf.tf_object, N=5000)
+            timp, impr = signal.impulse(self.tf.tf_object, N=5000)
+            self.data[0]['step_time'] = tstep
+            self.data[0]['step_resp'] = stepr
+            self.data[0]['imp_time'] = timp
+            self.data[0]['imp_resp'] = impr
     
     def parse_from_filter(self):
         f, g, ph, gd = self.tf.getBode()
@@ -228,3 +224,20 @@ class Dataset:
             dl.markerstyle = 'Point'
         self.datalines.append(dl)
         return dl
+    
+    def __deepcopy__(self, memo):
+        """Custom deep copy logic for Dataset."""
+        # Create a new empty instance without calling __init__
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+
+        # Manually copy each attribute
+        for attr, value in self.__dict__.items():
+            try:
+                setattr(result, attr, copy.deepcopy(value, memo))
+            except Exception:
+                # Fallback: just assign the reference if deepcopy fails
+                setattr(result, attr, value)
+
+        return result
