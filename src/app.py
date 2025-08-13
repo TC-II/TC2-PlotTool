@@ -16,5 +16,5 @@ def main():
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID('tc2.plottool.1')
     window = MainWindow()
     window.show()
-    window.setWindowIcon(QtGui.QIcon('icon.png'))
+    window.setWindowIcon(QtGui.QIcon('src/icon.png'))
     sys.exit(app.exec())

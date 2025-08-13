@@ -1,5 +1,9 @@
 # PlotTool TC2022 Grupo 2
 
+## Tutorial
+
+El tutorial de uso se encuentra en el archivo [tutorial.pdf](tutorial.pdf)
+
 ## Utilización
 
 Crear el venv
@@ -26,7 +30,7 @@ Correr el programa
 
     python main.py
 
-## Consigna
+## Features
 
 ### Inputs
 
@@ -34,7 +38,7 @@ Correr el programa
 - Extraı́dos de una simulación de LTspice.
 - Extraı́dos de un archivo CSV donde se almacenaron mediciones.
 
-### Obligatorios
+### Capacidades
 
 - Especificar la etiqueta de los ejes X e Y, como ası́ también poder agregar un tı́tulo de ser necesario.
 - Guardar el resultado del gráfico como imagen.
@@ -42,18 +46,14 @@ Correr el programa
 - Al menos poder gráficar tres curvas a la vez. (∀x max : x max ≥ 3)
 - Para diagramas de Bode, cambiar la escala del eje X e Y entre logarı́tmica y lineal.
 - Representación de polos y ceros en el plano solo para cuando se escribe una transferencia de orden N.
-
-### Opcionales
-
 - “Togglear” cada curva (mostrar/ocultar)
 - Cambiar los labels de las curvas.
 - Cambiar el color de las mismas.
 - En caso de hacer un estudio Montecarlo, poder aclarar la cantidad de runs que se quieran graficar y
 - las variaciones máximas en cada componente.
 - Cambiar el tamaño de la fuente de los labels y legends del gráfico.
-- Cualquier otra cosa
 
-## Features
+## Funcionamiento
 
 El flujo de trabajo consiste en cargar ''datasets'', a partir de los cuales se pueden generar ''datalines'' personalizadas y permitiendo configurar los gráficos en los que aparece cada línea.
 
