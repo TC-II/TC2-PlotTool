@@ -1,4 +1,4 @@
-# PlotTool TC2022 Grupo 2
+# PlotTool
 
 ## Tutorial
 
